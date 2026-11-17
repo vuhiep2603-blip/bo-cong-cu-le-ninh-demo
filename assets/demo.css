@@ -1,3 +1,157 @@
 @font-face{font-family:'Liberation Serif';src:url('./fonts/LiberationSerif-Regular.ttf')}@font-face{font-family:'Liberation Serif';src:url('./fonts/LiberationSerif-Bold.ttf');font-weight:700}@font-face{font-family:'Liberation Serif';src:url('./fonts/LiberationSerif-Italic.ttf');font-style:italic}@font-face{font-family:'Liberation Serif';src:url('./fonts/LiberationSerif-BoldItalic.ttf');font-weight:700;font-style:italic}
 .demoNotice{position:relative;z-index:50;padding:9px 18px;background:#fff2dc;color:#6b2833;border-bottom:1px solid #cfae9d;text-align:center;font:12px/1.6 'Segoe UI',Arial,sans-serif}.demoNotice a{color:#842434;font-weight:700}.backupTools{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.paper{font-family:'Times New Roman','Liberation Serif',serif}.headRight,.toolbar{flex-wrap:wrap}
 .headRight #exportPdfBtn{display:inline-flex}
+
+/* === BANNER CHUNG: GIAY MOI + LICH CONG TAC (v4.3.3) === */
+.suiteBanner {
+  display: flex;
+  align-items: center;
+  gap: 19px;
+  min-height: 106px;
+  padding: 12px 27px;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(100deg, #4d0711, #7e0b1b 62%, #9e1b2e);
+  border-bottom: 2px solid #f0c272;
+  box-shadow: 0 9px 27px #29000775;
+  color: #fff;
+  font-family: Inter, 'Segoe UI', Arial, sans-serif;
+}
+.suiteBanner::after {
+  content: '';
+  position: absolute;
+  right: 18%;
+  width: 380px;
+  height: 380px;
+  border: 1px solid #f7bb6140;
+  border-radius: 50%;
+  box-shadow: 0 0 0 28px #f7bb6109, 0 0 0 70px #f7bb6108;
+  pointer-events: none;
+}
+.suiteBanner .suiteLogo {
+  display: block;
+  position: relative;
+  z-index: 2;
+  width: 70px;
+  height: 70px;
+  flex: 0 0 70px;
+  object-fit: contain;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  clip-path: circle(48.5% at 50% 50%);
+}
+.suiteBanner .suiteBrand { min-width: 0; position: relative; z-index: 2; }
+.suiteBanner .suiteOverline {
+  font-size: 12px;
+  letter-spacing: 1.15px;
+  font-weight: 700;
+  color: #ffd986;
+  line-height: 1.4;
+}
+.suiteBanner h1 {
+  font-family: Inter, 'Segoe UI', Arial, sans-serif;
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: .15px;
+  line-height: 1.05;
+  margin: 7px 0 3px;
+  color: #fff;
+}
+.suiteBanner p {
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 7px 0 0;
+  color: #f7d2cf;
+}
+.suiteBanner .suiteMeta {
+  position: relative;
+  z-index: 2;
+  margin-left: auto;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+.suiteBanner .suitePill {
+  background: #fdd68b16;
+  border: 1px solid #dfb86c5e;
+  border-radius: 30px;
+  padding: 8px 14px;
+  color: #ffe4aa;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.suiteBanner .suiteDot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: #88e6a1;
+}
+.suiteBanner .suiteVersion {
+  color: #f6b1b2;
+  font-size: 11px;
+  letter-spacing: 1.1px;
+}
+/* Dung chung menu ben duoi banner. */
+.suiteNav {
+  position: relative;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 27px;
+  min-height: 58px;
+  background: #4e0915;
+  border-bottom: 1px solid #b77b6a;
+}
+.suiteNav a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #bf888555;
+  color: #ffe8d0;
+  text-decoration: none;
+  font: 750 12px Inter, 'Segoe UI', Arial, sans-serif;
+}
+.suiteNav a.current, .suiteNav a:hover {
+  background: #fbebde;
+  color: #821f31;
+}
+@media (max-width: 1080px) {
+  .suiteBanner h1 { font-size: 20px; }
+}
+@media (max-width: 700px) {
+  .suiteBanner { min-height: 90px; padding: 10px 12px; gap: 12px; }
+  .suiteBanner .suiteLogo { width: 55px; height: 55px; flex-basis: 55px; }
+  .suiteBanner .suiteOverline { font-size: 9px; letter-spacing: .45px; }
+  .suiteBanner h1 { font-size: 16px; line-height: 1.18; margin-top: 5px; }
+  .suiteBanner p { font-size: 11px; margin-top: 4px; }
+  .suiteBanner .suiteMeta { display: none; }
+  .suiteNav { padding: 9px 12px; gap: 7px; }
+  .suiteNav a { padding: 8px 10px; font-size: 11px; }
+}
+/* === END BANNER CHUNG === */
+
+/* Reserve the same text tracks in both tabs, including wrapped tablet/mobile text.
+   Hidden sizing text never replaces or truncates the visible title/description. */
+.suiteBanner h1, .suiteBanner p { display: grid; }
+.suiteBanner h1 > span, .suiteBanner p > span,
+.suiteBanner h1::before, .suiteBanner h1::after,
+.suiteBanner p::before, .suiteBanner p::after { grid-area: 1 / 1; min-width: 0; }
+.suiteBanner h1::before, .suiteBanner h1::after,
+.suiteBanner p::before, .suiteBanner p::after { visibility: hidden; pointer-events: none; }
+.suiteBanner h1::before { content: 'CÔNG CỤ TẠO GIẤY MỜI TỰ ĐỘNG'; }
+.suiteBanner h1::after { content: 'CÔNG CỤ TẠO LỊCH CÔNG TÁC TUẦN'; }
+.suiteBanner p::before { content: 'Hiệu chỉnh trực tiếp nội dung · Tạo Giấy mời theo mẫu Word của Văn phòng'; }
+.suiteBanner p::after { content: 'Hiệu chỉnh trực tiếp nội dung · Tạo Lịch công tác theo mẫu Word của Văn phòng'; }

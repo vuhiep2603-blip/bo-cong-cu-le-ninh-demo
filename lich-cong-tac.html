@@ -117,9 +117,20 @@
 .periodContent{padding:10px 12px 12px}
 .periodContent .periodChoiceGroup{margin:0}
 @media(max-width:650px){.top{height:auto;min-height:90px;padding:10px 12px}.top img{width:55px;height:55px}.nav{padding:9px 12px;gap:7px}.nav a{padding:8px 10px;font-size:11px}.periodBrief{max-width:140px;overflow:hidden;text-overflow:ellipsis}}
-</style><link rel="stylesheet" href="./assets/demo.css"></head><body><aside class="demoNotice">BẢN DEMO · Chỉ nhập dữ liệu giả lập. Dữ liệu soạn thảo lưu tại trình duyệt, không đồng bộ giữa các máy. Không có chức năng con dấu. <a href="./HUONG_DAN.html">Hướng dẫn và sao lưu</a></aside>
-<header class="top"><img src="./assets/logo.png" alt="Logo Văn phòng Đảng uỷ xã Lệ Ninh"><div><div class="over">VĂN PHÒNG ĐẢNG UỶ XÃ LỆ NINH – TỈNH QUẢNG TRỊ</div><h1>BỘ CÔNG CỤ VĂN PHÒNG ĐẢNG UỶ</h1></div><span class="status">LỊCH CÔNG TÁC TUẦN · OFFLINE</span></header>
-<nav class="nav" aria-label="Menu chức năng"><a href="./index.html">⌂ Trang chủ</a><a href="./giay-moi.html">✉ Tạo Giấy mời</a><a href="./lich-cong-tac.html" class="on" aria-current="page">▦ Lịch công tác tuần</a></nav>
+</style><link rel="stylesheet" href="./assets/demo.css?v=4.3.3-final-20261117"></head><body><aside class="demoNotice">BẢN DEMO · Chỉ nhập dữ liệu giả lập. Dữ liệu soạn thảo lưu tại trình duyệt, không đồng bộ giữa các máy. Dấu treo chỉ chèn khi được chọn trong PDF Lịch công tác. <a href="./HUONG_DAN.html">Hướng dẫn và sao lưu</a></aside>
+<header class="suiteBanner">
+  <img class="suiteLogo" src="./assets/logo.png" alt="Logo Văn phòng Đảng uỷ xã Lệ Ninh">
+  <div class="suiteBrand">
+    <div class="suiteOverline">VĂN PHÒNG ĐẢNG UỶ XÃ LỆ NINH — TỈNH QUẢNG TRỊ</div>
+    <h1><span>CÔNG CỤ TẠO LỊCH CÔNG TÁC TUẦN</span></h1>
+    <p><span>Hiệu chỉnh trực tiếp nội dung · Tạo Lịch công tác theo mẫu Word của Văn phòng</span></p>
+  </div>
+  <div class="suiteMeta">
+    <div class="suitePill"><span class="suiteDot" aria-hidden="true"></span> DEMO · XỬ LÝ TẠI TRÌNH DUYỆT</div>
+    <div class="suiteVersion">BỘ CÔNG CỤ 4.3.3</div>
+  </div>
+</header>
+<nav class="suiteNav" aria-label="Menu chức năng"><a href="./index.html">⌂ Trang chủ</a><a href="./giay-moi.html">✉ Tạo Giấy mời</a><a href="./lich-cong-tac.html" class="current" aria-current="page">▦ Lịch công tác tuần</a></nav>
 <main class="wrap"><div class="heading"><div><h2>TẠO LỊCH CÔNG TÁC TUẦN</h2><p>Chọn tuần · Quản lý hoạt động · Sửa ngay trên bản xem trước · Xuất Word / PDF</p></div><div class="toolbar"><button class="btn outline" id="previewToggle" onclick="togglePreview()">◫ Ẩn xem trước</button><button class="btn danger" onclick="clearWeek()" title="Xóa toàn bộ nội dung và bản lịch tuần đã lưu">⌫ Xoá lịch tuần</button><button class="btn" onclick="saveWeek()">▣ Lưu tuần</button><button class="btn gold" onclick="download('docx',this)">↓ Xuất Word</button><button class="btn primary" onclick="download('pdf',this)">↓ Xuất PDF</button></div></div>
 <div class="cols" id="columns"><section class="panel"><div class="bar"><b>✎ NHẬP THÔNG TIN LỊCH CÔNG TÁC</b><span class="badge">7 NGÀY / TUẦN</span></div>
 <div class="formBody" id="formBody">
@@ -136,6 +147,7 @@
 <div class="section">THIẾT LẬP XUẤT VĂN BẢN</div>
 <div class="field"><label for="note">Ghi chú cuối lịch</label><textarea id="note" rows="2" lang="vi" oninput="setNote(this.value)"></textarea></div>
 <label class="checkbox"><input type="checkbox" id="weekendRest" checked onchange="state.weekend_rest=this.checked;changed()"> Mặc định ghi “Nghỉ” cho thứ Bảy, Chủ nhật khi không có hoạt động</label>
+<label class="checkbox"><input type="checkbox" id="includeStamp"> Chèn dấu treo khi xuất PDF</label>
 
 <p class="gridFoot">Dữ liệu chỉ lưu trong trình duyệt này. Xóa dữ liệu website hoặc đổi trình duyệt có thể mất lịch. Hãy sao lưu ra tệp JSON định kỳ.</p><div class="backupTools"><button class="btn outline" onclick="backupData()">↓ Sao lưu dữ liệu</button><button class="btn outline" onclick="document.getElementById('restoreFile').click()">↑ Khôi phục từ tệp</button><input id="restoreFile" type="file" accept=".json,application/json" hidden onchange="restoreData(this)"></div>
 <div class="formFooter"><button class="btn" onclick="saveWeek()">▣ Lưu lịch công tác</button><button class="btn gold" onclick="download('docx',this)">↓ Word</button><button class="btn primary" onclick="download('pdf',this)">↓ PDF</button></div></div></section>
@@ -144,7 +156,7 @@
 <article class="paper" id="paper"><div class="paperHelp">Đây là bản xem trước để hiệu chỉnh; PDF/Word sẽ được dàn trang theo kích thước A4 khi xuất.</div><div class="mast"><div>ĐẢNG UỶ XÃ LỆ NINH<br>VĂN PHÒNG<br><span class="stampAnchor" id="stampAnchor">*</span></div><div>LỊCH CÔNG TÁC TUẦN<br>CỦA BAN THƯỜNG VỤ ĐẢNG UỶ<br><span class="range" id="previewRange"></span><br><span style="font-weight:normal">-----</span></div></div><table class="thetable"><tbody id="previewRows"></tbody></table><p class="footnote"><span class="edit" contenteditable="plaintext-only" id="previewNote" data-note="true" spellcheck="false"></span></p></article></div></section>
 </div></main>
 <div class="alert" id="toast"><button onclick="hideToast()">×</button><span id="toastText"></span></div>
-<script src="./assets/app.js"></script>
+<script src="./assets/app.js?v=4.3.3-final-20261117"></script>
 <script>
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -320,7 +332,7 @@ function render(){fillForm();renderChips();renderDayEditor();renderPreview()}
 window.addEventListener('resize',updateSealPosition);
 function togglePreview(){previewHidden=!previewHidden;$('columns').classList.toggle('preview-off',previewHidden);$('previewToggle').textContent=previewHidden?'◫ Hiện xem trước':'◫ Ẩn xem trước'}
 async function saveWeek(){try{const o=await LeNinh.storage.put(structuredClone(state),true);unsaved=false;await loadWeeks();toast('Đã lưu lịch trong trình duyệt lúc '+new Date(o.updated_at).toLocaleString('vi-VN'),'ok')}catch(e){toast('Chưa lưu được: '+e.message)}}
-async function download(ext,button){if(button)button.disabled=true;try{const data=LeNinh.normalize(state);const blob=await (ext==='pdf'?LeNinh.schedulePDF(data):LeNinh.scheduleWord(data));LeNinh.save(blob,`Lich_cong_tac_tuan_${data.start.replaceAll('-','')}_${data.end.replaceAll('-','')}.${ext}`);toast('Đã tạo '+ext.toUpperCase()+' tại trình duyệt.','ok')}catch(e){toast('Lỗi xuất tài liệu: '+e.message)}finally{if(button)button.disabled=false}}
+async function download(ext,button){if(button)button.disabled=true;try{const data=LeNinh.normalize(state);const blob=await (ext==='pdf'?LeNinh.schedulePDF(data,{includeStamp:$('includeStamp').checked}):LeNinh.scheduleWord(data));LeNinh.save(blob,`Lich_cong_tac_tuan_${data.start.replaceAll('-','')}_${data.end.replaceAll('-','')}.${ext}`);toast('Đã tạo '+ext.toUpperCase()+' tại trình duyệt.','ok')}catch(e){toast('Lỗi xuất tài liệu: '+e.message)}finally{$('includeStamp').checked=false;if(button)button.disabled=false}}
 async function backupData(){try{if(unsaved)await LeNinh.storage.put(structuredClone(state));const data=await LeNinh.storage.backup();LeNinh.save(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),'Le_Ninh_sao_luu_'+iso(new Date())+'.json');toast('Đã sao lưu '+data.weeks.length+' tuần.','ok')}catch(e){toast('Không sao lưu được: '+e.message)}}
 async function restoreData(input){const file=input.files[0];if(!file)return;try{if(file.size>10*1024*1024)throw Error('Tệp vượt quá 10 MB.');const data=JSON.parse(await file.text());const records=LeNinh.parseBackup(data);if(!confirm('Khôi phục '+records.length+' tuần? Tuần trùng sẽ được thay thế; các tuần khác được giữ lại.'))return;await LeNinh.storage.restore(data);changeVersion++;for(const k of Object.keys(inputDrafts))delete inputDrafts[k];await loadWeeks();await loadWeek(state.start);toast('Đã khôi phục '+records.length+' tuần.','ok')}catch(e){toast('Không khôi phục được: '+e.message)}finally{input.value=''}}
 // Chỉnh sửa ngay trên bản xem trước: đồng bộ về cùng bản ghi trong biểu mẫu.
