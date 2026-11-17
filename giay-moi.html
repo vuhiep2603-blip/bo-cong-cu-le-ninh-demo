@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Công cụ tạo Giấy mời – Bộ công cụ v4.3.3 — Tạo Giấy mời</title><style>
+
+:root{--bg:#570713;--bg2:#7D1020;--deep:#35020b;--panel:#7f1221;--panel2:#8c1927;--panel3:#67101b;--line:#b6454e;--gold:#ffe1a1;--bright:#ffcd70;--muted:#edbfc0;--white:#fff9f5;--shadow:0 16px 42px #24000680}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,'Segoe UI',Arial,sans-serif;color:#fff}body{background:#490410;background-image:radial-gradient(circle at 15% 8%,#b53646 0,#8b1828 23%,transparent 56%),radial-gradient(circle at 86% 88%,#73111c 0,transparent 50%),linear-gradient(145deg,#49020a,#70101f 65%,#4b0410)}
+body::before{content:"";position:fixed;inset:0;opacity:.08;pointer-events:none;background:repeating-linear-gradient(45deg,transparent 0 28px,#ffde8c 28px 29px,transparent 29px 58px);mask-image:linear-gradient(90deg,transparent 25%,black 100%)}
+.shell{max-width:1750px;margin:0 auto;min-height:100vh;position:relative;z-index:1}
+.header{height:116px;background:linear-gradient(100deg,#4d0711,#7e0b1b 62%,#9e1b2e);display:flex;align-items:center;padding:13px 29px;gap:19px;border-bottom:2px solid #f0c272;box-shadow:0 9px 27px #29000775;position:relative;overflow:hidden}
+.header::after{content:"";position:absolute;right:18%;width:380px;height:380px;border:1px solid #f7bb6140;border-radius:50%;box-shadow:0 0 0 28px #f7bb6109,0 0 0 70px #f7bb6108;pointer-events:none}
+.logo{width:88px;height:88px;object-fit:contain;border-radius:50%;box-shadow:0 0 0 3px #ffe4a39c,0 4px 18px #390209ad;background:#fff;flex-shrink:0}
+.brand{min-width:0;position:relative;z-index:2}.overline{font-size:12px;letter-spacing:1.15px;font-weight:700;color:#ffd986}.header h1{font-size:25px;margin:7px 0 3px;font-weight:800;line-height:1.05;letter-spacing:.15px}.header p{font-size:12px;margin:7px 0 0;color:#f7d2cf}
+.header-side{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:12px;position:relative;z-index:2}.offline{background:#fdd68b16;border:1px solid #dfb86c5e;border-radius:30px;padding:8px 14px;color:#ffe4aa;font-size:12px;font-weight:650;white-space:nowrap}.dot{display:inline-block;width:8px;height:8px;background:#88e6a1;border-radius:50%;margin-right:8px}.ver{font-size:11px;color:#f6b1b2;letter-spacing:1.1px}
+.main{padding:22px 28px 25px}.heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:14px}.heading .crumb{font-size:12px;color:#f4c4bf;margin-bottom:7px}.heading h2{font-size:21px;font-weight:800;margin:0;letter-spacing:.05px}.heading small{font-size:12px;color:#eeb3b5}.headRight{display:flex;gap:10px;align-items:center}.btn{border:1px solid #d57d7e80;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:37px;padding:0 15px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:.15s;background:#ffffff0d;color:#fff}.btn:hover{filter:brightness(1.13);transform:translateY(-1px)}.btn.gold{color:#5f1115;border-color:#ffe1a2;background:linear-gradient(125deg,#ffebbb,#eeb957);box-shadow:0 4px 12px #27000855}.btn.ghost{color:#ffe3dd;background:#ffffff0a}.btn.small{font-size:11px;min-height:31px;padding:0 12px}
+.columns{display:grid;grid-template-columns:minmax(420px, .85fr) minmax(590px, 1.15fr);gap:20px;align-items:start}
+.panel{border:1px solid #d26a6980;border-radius:18px;background:linear-gradient(145deg,#901a29ed,#67101eeb);box-shadow:var(--shadow);overflow:hidden}.panelTop{padding:15px 19px;border-bottom:1px solid #ffd4bb27;display:flex;align-items:center;justify-content:space-between;gap:9px}.panelTitle{display:flex;gap:10px;align-items:center;font-size:15px;font-weight:800}.panelIcon{background:#f8c96b25;color:#ffe2a2;width:29px;height:29px;border:1px solid #f9c76b55;border-radius:9px;display:inline-flex;align-items:center;justify-content:center}.count{background:#ffd08f20;color:#ffe2aa;border-radius:22px;padding:6px 10px;font-size:10px;border:1px solid #ffda8844}
+.leftBody{padding:16px 18px;max-height:692px;overflow:auto;scrollbar-color:#d17a79 #62111f;scrollbar-width:thin}.subtitle{display:flex;align-items:center;font-weight:800;font-size:11px;letter-spacing:.7px;color:#ffdc9d;text-transform:uppercase;margin:3px 0 12px;gap:7px}.subtitle::before{content:'';width:3px;height:16px;background:#ffd376;border-radius:4px}.formGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}.field label{font-size:11px;color:#ffe4dc;font-weight:700}.field input,.field select,.field textarea{width:100%;border:1px solid #d78382a1;border-radius:9px;padding:10px 12px;color:#fff;background:#57101be8;font-family:inherit;font-size:12px;outline:none;min-height:38px}.field textarea{resize:vertical;min-height:68px;line-height:1.5}.field input:focus,.field select:focus,.field textarea:focus{border-color:#ffdc8e;box-shadow:0 0 0 2px #ffd46d25}.field select{appearance:none;padding-right:33px;background-image:url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="%23ffe0a0" stroke-width="2"%3E%3Cpath d="m6 9 6 6 6-6"/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 10px center}option{color:#2d0710;background:#fdf4ef}.divider{height:1px;background:#f8c8be36;margin:11px 0 16px}.guestBox{border:1px solid #dc8d8845;border-radius:12px;background:#570d19bd;overflow:hidden}.guestTools{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid #dfa9a43d;font-size:11px;color:#ffdeae}.link{color:#ffe7af;border:0;background:none;padding:0;cursor:pointer;font:inherit;font-weight:750}.guestScroll{max-height:212px;overflow:auto;padding:5px 11px;scrollbar-color:#c16d70 #60111d;scrollbar-width:thin}.guest{display:flex;align-items:flex-start;gap:9px;font-size:11px;line-height:1.45;padding:8px 0;border-bottom:1px solid #e0a0a014;color:#fff6f0;cursor:pointer}.guest:last-child{border-bottom:none}.guest input{accent-color:#ffd178;width:16px;height:16px;flex:none;margin:0}.helper{font-size:10px;color:#f9c9be;line-height:1.5;margin:7px 0 2px}.bottomFields{display:grid;grid-template-columns:1fr 1fr;gap:10px}.leftFoot{margin-top:11px;display:flex;justify-content:flex-end;align-items:center;gap:10px}
+.paperArea{padding:20px;background:linear-gradient(155deg,#63132180,#8c2230a8 50%,#5b0d19e8);min-height:692px}.paperTop{display:flex;justify-content:space-between;align-items:center;margin:-5px 0 13px}.paperLabel{display:flex;align-items:center;gap:7px;font-size:12px;color:#ffe3ac;font-weight:700}.paperHint{font-size:11px;color:#f8c5c1}.paperScale{width:100%;max-width:745px;margin:0 auto}.paper{background:#fff;color:#151515;min-height:626px;box-shadow:0 10px 33px #1b000b92;border:1px solid #f3e7dc;padding:33px 38px 34px;font-family:'Times New Roman',Times,serif;font-size:14px;line-height:1.4}.docHeader{display:grid;grid-template-columns:49% 51%;gap:7px;text-align:center;font-size:12.5px;line-height:1.35}.docHeader .small{font-weight:bold}.docNum{margin-top:12px;text-align:left}.docDate{text-align:right;margin-top:15px;font-style:italic}.docTitle{text-align:center;margin:22px 0 17px;font-size:20px;font-weight:bold}.ornament{text-align:center;line-height:0;margin-top:-8px;margin-bottom:24px}.ornament span{display:inline-block;border-top:1.5px solid #242424;width:50px}.docLead{margin-bottom:14px;text-align:justify;text-indent:25px}.sectionTitle{font-weight:bold;margin:10px 0 4px}.invited{margin:0 0 4px 0;line-height:1.42}.meetingMeta{margin-top:16px}.meetingMeta div{margin:5px 0}.meetingMeta strong{font-weight:bold}.meetingMeta em{font-style:italic;font-weight:700}.request{margin-top:17px;text-indent:24px}.docBottom{display:flex;justify-content:space-between;margin-top:23px;gap:25px;font-size:12.5px}.docBottom .rec{width:46%}.docBottom .sign{width:47%;text-align:center;font-weight:bold}.docBottom .name{margin-top:53px;font-size:14px;font-weight:bold}.recText{font-size:12px;margin-top:9px;font-weight:normal}.paperAlert{font:11px Inter,'Segoe UI',Arial,sans-serif;display:inline-flex;border-radius:20px;background:#fff2dc;color:#8c4f16;padding:4px 9px;margin:0 0 12px}
+@media(max-width:1080px){.columns{grid-template-columns:1fr}.leftBody{max-height:none}.paperArea{min-height:0}.header h1{font-size:19px}.logo{width:75px;height:75px}.header{height:99px}.main{padding:18px}.paper{min-height:600px}}@media(max-width:660px){.header{padding:10px;gap:12px}.header h1{font-size:15px}.overline{font-size:9px}.header-side{display:none}.logo{width:58px;height:58px}.heading h2{font-size:17px}.headRight .btn.ghost{display:none}.columns{grid-template-columns:1fr}.formGrid,.bottomFields{grid-template-columns:1fr}.paperArea{padding:10px}.paper{padding:18px;font-size:12px}.docHeader{font-size:9px}.docTitle{font-size:17px}.docBottom{font-size:9px}.paperHint{display:none}.main{padding:10px}.heading{flex-wrap:wrap}}
+
+/* BẢN PHỐI MÀU DỊU MẮT — giảm đỏ chói tại vùng nhập liệu; nền tổng thể vẫn đỏ */
+:root{
+  --work-cream:#FBF7F3;
+  --work-cream-deep:#F4EAE5;
+  --work-text:#442B32;
+  --work-muted:#78646A;
+  --work-stroke:#E4D3CB;
+  --work-accent:#8F2635;
+}
+body{
+  background:#4E0B15;
+  background-image:radial-gradient(circle at 10% 5%,#852130 0,transparent 40%),
+    radial-gradient(circle at 92% 96%,#6F1624 0,transparent 55%),
+    linear-gradient(150deg,#440812 10%,#6D1321 62%,#4A0915);
+}
+body::before{opacity:.055}
+.columns>.panel:first-child{
+  background:var(--work-cream); border-color:#e8d9d0;
+  box-shadow:0 15px 42px #2400065c, 0 1px 1px #4b000925;
+}
+.columns>.panel:first-child .panelTop{
+  background:linear-gradient(105deg,#771623,#922332);
+  border-bottom:1px solid #c78683;
+  padding:16px 19px;
+}
+.columns>.panel:first-child .panelTop .count{
+  background:#ffebc51a;color:#ffe5b0;border-color:#f6c47c45;
+}
+.leftBody{
+  background:linear-gradient(180deg,#FFFBF8 0%,#FBF6F2 55%,#F7F0EB 100%);
+  color:var(--work-text);scrollbar-color:#C9ABA6 #F2E5E0;
+  padding:19px 20px 21px;
+}
+.leftBody .subtitle{
+  color:#7E2330;background:#F5E8E2;
+  border:1px solid #EAD8CF;
+  padding:9px 11px;border-radius:9px;
+  margin:3px 0 13px; font-size:11px;letter-spacing:.75px;
+}
+.leftBody .subtitle::before{background:#C39B5A;height:16px}
+.leftBody .field{gap:7px;margin-bottom:14px}
+.leftBody .field label{color:#66434B;font-size:11.5px;font-weight:750}
+.leftBody .field input,
+.leftBody .field select,
+.leftBody .field textarea{
+  background:#FFFFFF;color:#372930;border:1px solid #DCC9C2;
+  border-radius:9px;box-shadow:0 1px 2px #5d162009;
+  font-size:12.5px;min-height:40px;padding:10px 12px;
+}
+.leftBody .field input::placeholder,
+.leftBody .field textarea::placeholder{color:#9B8685}
+.leftBody .field input:focus,
+.leftBody .field select:focus,
+.leftBody .field textarea:focus{
+  background:#FFFDFC;border-color:#A83D4E;
+  box-shadow:0 0 0 3px #B74C5325;
+}
+.leftBody .field select{
+  background-image:url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="%23872435" stroke-width="2"%3E%3Cpath d="m6 9 6 6 6-6"/%3E%3C/svg%3E');
+  background-repeat:no-repeat;background-position:right 10px center;padding-right:35px;
+}
+.leftBody .divider{background:#E3D3CC;margin:13px 0 15px}
+.leftBody .guestBox{
+  border-color:#E1D0C9;background:#FFFFFF;
+  box-shadow:0 2px 10px #5b13200a;
+}
+.leftBody .guestTools{
+  background:#F7EEEA;color:#74555A;
+  border-bottom:1px solid #E6D8D3;font-size:11px;
+}
+.leftBody .link{color:#8E2636}
+.leftBody .link:hover{text-decoration:underline}
+.leftBody .guestScroll{scrollbar-color:#CFB6B1 #F7EDE8}
+.leftBody .guest{
+  color:#45363B;font-size:11.5px;
+  border-bottom:1px solid #F0E7E2;
+  padding:9px 1px;align-items:center;
+}
+.leftBody .guest:hover{color:#721F2E;background:#FBF5F1}
+.leftBody .guest input{accent-color:#9B2D3F}
+.leftBody .helper{color:#886C72;font-size:10.5px}
+.leftBody .leftFoot{color:#7C6064}
+.leftBody .btn.ghost{background:#F7EEEA;border:1px solid #D6BDB9;color:#8E2636}
+.leftBody .btn.gold{background:linear-gradient(115deg,#901C2B,#AB2C3F);border-color:#8D1929;color:#FFFFFF;box-shadow:0 4px 13px #891c2826}
+.columns>.panel:nth-child(2){border-color:#B86060}
+.paperArea{
+  background:linear-gradient(150deg,#6B1A28 0%,#7A2330 48%,#5B1420 100%);
+}
+.paper{box-shadow:0 12px 30px #23040b66}
+/* Biểu thị rõ mục đích của bản xem trước */
+.soft-theme-tag{
+  display:inline-block;padding:5px 10px;border-radius:20px;
+  background:#F7E8E0;color:#832E3B;border:1px solid #E8CBC3;
+  font-size:10px;font-weight:800;letter-spacing:.3px;margin-left:8px;
+}
+@media(max-width:620px){.leftBody{padding:12px}.soft-theme-tag{display:none}}
+
+
+/* WINDOWS DESKTOP V3.2: trạng thái, phần tùy chọn và xem trước */
+.columns.previewHidden{grid-template-columns:minmax(460px, 1fr)}
+.columns.previewHidden > section:nth-child(2){display:none}
+.columns.previewHidden .leftBody{max-height:calc(100vh - 256px)}
+.docSubtitle{font:700 13px "Times New Roman",serif;text-align:center;margin:5px 0 8px}
+.docAgendaSection{margin-top:13px}
+.docAgendaSection .invited{margin-top:4px}
+.docNote{margin-top:13px}
+#docGuests .invited, #docAgenda .invited{white-space:normal;overflow-wrap:anywhere}
+#notification{position:fixed;z-index:1000;right:28px;bottom:24px;max-width:min(520px,calc(100vw - 55px));background:#fff8f2;color:#50303a;box-shadow:0 16px 50px #26000588;border:1px solid #e7c7b8;border-left:5px solid #9e2231;padding:14px 44px 14px 18px;border-radius:12px;font:600 13px/1.55 Inter,'Segoe UI',sans-serif;display:none;white-space:pre-wrap}
+#notification.success{border-left-color:#17854d}
+#notification.error{border-left-color:#b80025}
+#notification button{position:absolute;right:10px;top:8px;border:0;background:transparent;color:#7b4551;font-size:20px;cursor:pointer}
+.field textarea{min-height:60px;resize:vertical}
+#extraGuests{min-height:66px}
+#agenda{min-height:100px}
+#note{min-height:58px}
+#exportBtn:disabled{opacity:.55;cursor:wait}
+@media(max-width:1080px){.columns.previewHidden{grid-template-columns:1fr}}
+
+/* Phiên bản hiệu chỉnh webapp: giữ phối màu dịu mắt đã duyệt. */
+:root{color-scheme:light}
+body{color:#fff}
+.leftBody{max-height:calc(100vh - 260px);min-height:600px}
+.paperArea{min-height:calc(100vh - 270px)}
+.guestScroll{max-height:355px;padding:5px 10px}
+.guest-row{display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:10px;align-items:center;min-height:47px;padding:8px 4px;border-bottom:1px solid #efe2dc}
+.guest-row:last-child{border-bottom:0}
+.guest-row:hover{background:#fbf4ef}
+.guest-row input[type=checkbox]{width:16px;height:16px;accent-color:#982335;cursor:pointer}
+.guest-text{font-size:12px;line-height:1.45;color:#403037;word-break:break-word}
+.guest-row.inactive .guest-text{color:#88787c}
+.guest-row .guest-actions{display:flex;align-items:center;gap:4px}
+.move-btn,.delete-btn{font:700 13px 'Segoe UI',sans-serif;border:1px solid #ddc9c2;border-radius:7px;background:#fff;color:#8f2b3a;cursor:pointer;width:28px;height:27px;display:flex;align-items:center;justify-content:center}
+.move-btn:disabled{opacity:.27;cursor:not-allowed}.delete-btn{color:#a33d46}.move-btn:hover:not(:disabled),.delete-btn:hover{background:#f7e7e2}
+.guest-entry{display:flex;gap:9px;align-items:flex-start;margin-top:11px}
+.guest-entry textarea{flex:1;min-height:54px!important;max-height:110px}
+.guest-entry button{flex:none;background:#862030;border:1px solid #8e2636;color:#fff;padding:10px 12px;min-height:41px;border-radius:9px;cursor:pointer;font-weight:700;font-size:12px}
+.guest-entry button:hover{background:#a33745}
+.helper{line-height:1.55!important}
+.paperLabel{font-size:12px}.paperHint{font-size:11px}
+.editable{border-radius:3px;outline:1px dashed transparent;outline-offset:2px;cursor:text;transition:background .15s,outline .15s}
+.editable:hover{background:#fff5df;outline-color:#e3b36a}
+.editable:focus{background:#fff8e9;outline:2px solid #bb7a24}
+.editable:empty:before{content:attr(data-placeholder);color:#aaa;font-style:italic}
+#docGuests .invited{display:block;margin-bottom:4px;line-height:1.45}
+#docGuests .editable{display:inline;white-space:pre-wrap}
+#docAgenda .invited{display:block;margin-bottom:4px}
+#docAgenda .editable{display:inline;white-space:pre-wrap}
+.previewAdd{display:inline-flex;align-items:center;border:1px dashed #c9b7aa;color:#805260;border-radius:7px;background:#fff9f1;font:600 10px 'Segoe UI',sans-serif;padding:5px 9px;margin:6px 0 0;cursor:pointer}
+.previewAdd:hover{background:#fbe9e1}
+.docSubtitle[style*="display: none"]{display:none}
+.paperTop{gap:10px}.paperHint{color:#ffe4b0}
+.previewGuide{border:1px solid #ffdaa46e;border-radius:9px;background:#ffffff12;color:#fff4dc;padding:8px 10px;font-size:11px;line-height:1.5;margin:0 0 13px}
+.badgeEdit{display:inline-block;background:#fff3e0;color:#7d3e2b;border:1px solid #f0dcb8;padding:4px 9px;border-radius:20px;font:700 10px 'Segoe UI',sans-serif;margin-bottom:10px}
+#docNote{display:block;margin-top:9px}
+#docNote .editable{display:inline-block;min-width:200px}
+#docNumValue{display:inline-block;min-width:25px}
+.docTimeValue,.docLocValue{display:inline-block;min-width:190px}
+.editingIndicator{color:#5c2029;background:#fff2d9;border:1px solid #f4d7a2;border-radius:9px;padding:8px 10px;margin:10px 0;font-size:11px}
+/* Nút điều chỉnh thứ tự thành phần bổ sung, áp dụng cho mọi loại giấy mời. */
+.guest-row.extra-guest{background:#fffaf0}
+.guest-row.extra-guest .guest-text::after{content:" · bổ sung";font-size:10px;font-weight:700;color:#985a29;white-space:nowrap}
+.preview-guest{position:relative;padding-right:60px}
+.preview-order-tools{position:absolute;right:0;top:0;display:flex;align-items:center;gap:3px;font:11px 'Segoe UI',Arial,sans-serif}
+.preview-order-tools button{height:22px;min-width:23px;background:#fff6eb;color:#862b39;border:1px solid #dec5af;border-radius:5px;cursor:pointer;font-weight:700}
+.preview-order-tools button:disabled{opacity:.3;cursor:default}
+.preview-order-tools button:hover:not(:disabled){background:#f6ddc6}
+@media print{.preview-order-tools{display:none!important}}
+@media(max-width:1250px){.columns{grid-template-columns:minmax(370px,.9fr) minmax(490px,1.1fr);gap:12px}.main{padding:16px}.paper{padding:25px 27px}.leftBody{max-height:calc(100vh - 240px)}}
+@media(max-width:1000px){.columns{grid-template-columns:1fr}.leftBody{max-height:none;min-height:0}.paperArea{min-height:0}.guestScroll{max-height:310px}.paper{min-height:680px}}
+
+
+/* Logo Văn phòng nguyên bản; không viền đen, không bóng đổ tối. */
+.logo{border:0!important;outline:0!important;box-shadow:none!important;background:transparent!important;padding:0!important;border-radius:50%;clip-path:circle(48.5% at 50% 50%);object-fit:contain;}
+</style><style>.suiteNav{position:relative;z-index:30;display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:10px max(calc((100vw - 1440px)/2),26px);background:#4d0711;border-bottom:1px solid #ab5e5c}.suiteNav a{color:#ffe9d3;text-decoration:none;font:750 12px Inter,'Segoe UI',Arial,sans-serif;border:1px solid #bf888555;border-radius:8px;padding:9px 14px}.suiteNav a:hover,.suiteNav a.current{background:#f5e6db;color:#842434}
+/* v4.3.3: thống nhất banner -> menu -> phần nội dung ở cả hai công cụ */
+.header{height:106px;min-height:106px;padding:12px 27px;}
+.header .logo{height:70px;width:70px;}
+.suiteNav{position:relative;z-index:30;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 27px;min-height:58px;background:#4e0915;border-bottom:1px solid #b77b6a;}
+.suiteNav a{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:8px 14px;border-radius:8px;border:1px solid #bf888555;color:#ffe8d0;text-decoration:none;font:750 12px Inter,'Segoe UI',Arial,sans-serif;}
+.suiteNav a.current,.suiteNav a:hover{background:#fbebde;color:#821f31;}
+@media(max-width:660px){.header{height:auto;min-height:90px;padding:10px 12px}.header .logo{height:55px;width:55px}.suiteNav{padding:9px 12px;gap:7px}.suiteNav a{padding:8px 10px;font-size:11px}}
+</style><link rel="stylesheet" href="./assets/demo.css"></head><body><aside class="demoNotice">BẢN DEMO · Chỉ nhập dữ liệu giả lập. Dữ liệu soạn thảo lưu tại trình duyệt, không đồng bộ giữa các máy. Không có chức năng con dấu. <a href="./HUONG_DAN.html">Hướng dẫn và sao lưu</a></aside>
+<div class="shell">
+<header class="header">
+  <img class="logo" alt="Logo gốc Văn phòng Đảng uỷ xã Lệ Ninh" src="./assets/logo.png">
+  <div class="brand"><div class="overline">VĂN PHÒNG ĐẢNG UỶ XÃ LỆ NINH — TỈNH QUẢNG TRỊ</div><h1>CÔNG CỤ TẠO GIẤY MỜI TỰ ĐỘNG</h1><p>Hiệu chỉnh trực tiếp nội dung · Tạo Giấy mời theo mẫu Word của Văn phòng</p></div>
+  <div class="header-side"><div class="offline"><i class="dot"></i> DEMO · XỬ LÝ TẠI TRÌNH DUYỆT</div><div class="ver">BỘ CÔNG CỤ 4.3.3</div></div>
+</header>
+<nav class="suiteNav" aria-label="Menu chức năng"><a href="./index.html">⌂ Trang chủ</a><a href="./giay-moi.html" class="current" aria-current="page">✉ Tạo Giấy mời</a><a href="./lich-cong-tac.html">▦ Lịch công tác tuần</a></nav>
+<main class="main">
+  <div class="heading"><div><div class="crumb">TRANG CHỦ / TẠO GIẤY MỜI</div><h2>Soạn thảo Giấy mời <small>— Bản hiệu chỉnh</small> <span class="soft-theme-tag">GÕ TIẾNG VIỆT · SỬA NGAY TRÊN BẢN XEM TRƯỚC</span></h2></div>
+    <div class="headRight"><button class="btn ghost" type="button" onclick="resetForm()">↺ &nbsp; Làm mới</button><button class="btn ghost" id="togglePreviewBtn" type="button" onclick="togglePreview()">◫ &nbsp; Ẩn xem trước</button><button class="btn ghost" id="exportPdfBtn" type="button" onclick="exportInvitation('pdf')">↓ PDF</button><button class="btn gold" id="exportBtn" type="button" onclick="exportWord()">▤ &nbsp; Xuất Giấy mời Word</button></div>
+  </div>
+  <div class="columns" id="columns">
+    <section class="panel"><div class="panelTop"><div class="panelTitle"><span class="panelIcon">✦</span> Thông tin Giấy mời</div><span class="count">● &nbsp; MẪU WORD ĐÃ CHUẨN HÓA</span></div>
+      <div class="leftBody">
+        <div class="subtitle">THÔNG TIN CUỘC HỌP</div>
+        <div class="field"><label for="meeting">Loại cuộc họp</label><select id="meeting" onchange="changeMeeting()"><option value="btv">Hội nghị Ban Thường vụ Đảng uỷ</option><option value="tt">Họp Thường trực Đảng uỷ</option><option value="other">Các cuộc họp khác</option></select></div>
+        <div class="formGrid"><div class="field"><label for="number">Số Giấy mời</label><input id="number" autocomplete="off" placeholder="Ví dụ: 125" oninput="render()"></div><div class="field"><label for="issued">Ngày ban hành</label><input id="issued" type="date" onchange="render()"></div></div>
+        <div class="field"><label for="subtitle">Trích yếu / tên hội nghị (có thể sửa đổi)</label><input id="subtitle" lang="vi" spellcheck="false" placeholder="Nhập hoặc chỉnh sửa trích yếu" oninput="render()"></div>
+        <div class="field"><label for="lead">Câu dẫn / Nội dung mở đầu</label><textarea id="lead" lang="vi" spellcheck="false" rows="2" oninput="render()"></textarea></div>
+        <div class="divider"></div><div class="subtitle">THÀNH PHẦN MỜI · CÓ THỂ SẮP XẾP</div>
+        <div class="guestBox"><div class="guestTools"><span>Tích chọn · ↑/↓ điều chỉnh vị trí</span><span><button class="link" type="button" onclick="selectAll()">Chọn tất cả</button> &nbsp;·&nbsp; <button class="link" type="button" onclick="clearAll()">Bỏ chọn</button></span></div><div class="guestScroll" id="guestList"></div></div>
+        <div class="helper">Áp dụng cho cả ba loại Giấy mời: mỗi thành phần bổ sung đều có nút ↑/↓ để thay đổi thứ tự. Vị trí trong danh sách bên trái cũng là vị trí khi xuất Word. Mỗi thành phần mời nằm trên một dòng; cuối các dòng trước là dấu <b>;</b>, dòng cuối là dấu <b>.</b>.</div>
+        <div class="field" style="margin-top:13px"><label for="extraGuests">Bổ sung thành phần mời khác (mỗi dòng một thành phần)</label><div class="guest-entry"><textarea id="extraGuests" lang="vi" spellcheck="false" rows="2" placeholder="Nhập thành phần mới bằng tiếng Việt có dấu..." onkeydown="if(event.ctrlKey&&event.key==='Enter'){event.preventDefault();addGuests()}"></textarea><button type="button" onclick="addGuests()">＋ Thêm</button></div></div>
+        <div class="divider"></div><div class="subtitle">NỘI DUNG HỌP</div>
+        <div class="field"><label for="agenda">Nội dung hội nghị (không bắt buộc; mỗi dòng một nội dung)</label><textarea id="agenda" lang="vi" spellcheck="false" rows="3" placeholder="Mỗi dòng một nội dung..." oninput="render()"></textarea><div class="helper">Mặc định kết thúc bằng “Một số công việc quan trọng khác.”; thêm mục từ bản xem trước sẽ tự chèn phía trên. Có thể chỉnh sửa hoặc xóa dòng mặc định nếu cần.</div></div>
+        <div class="divider"></div><div class="subtitle">THỜI GIAN VÀ ĐỊA ĐIỂM</div>
+        <div class="bottomFields"><div class="field"><label for="date">Ngày họp</label><input id="date" type="date" onchange="clearTimeOverrideAndRender()"></div><div class="field"><label for="time">Giờ họp</label><input id="time" type="time" onchange="clearTimeOverrideAndRender()"></div></div>
+        <div class="field"><label for="venue">Địa điểm</label><select id="venue" onchange="changeVenue()"><option value="room">Phòng họp Ban Thường vụ Đảng uỷ</option><option value="hall">Hội trường Đảng uỷ</option><option value="custom">Địa điểm khác (tự nhập)</option></select></div>
+        <div class="field" id="customVenueField" style="display:none"><label for="customVenue">Tên địa điểm</label><input id="customVenue" lang="vi" spellcheck="false" placeholder="Nhập địa điểm..." oninput="render()"></div>
+        <div class="field"><label for="note">Ghi chú (không bắt buộc)</label><textarea id="note" lang="vi" spellcheck="false" rows="2" placeholder="Trang phục, yêu cầu chuẩn bị tài liệu..." oninput="render()"></textarea></div>
+        <div class="field"><label for="signer">Người ký</label><select id="signer" onchange="render()"><option value="hiep">Nguyễn Văn A (minh họa) — Chánh Văn phòng</option><option value="phuong">Trần Thị B (minh họa) — Phó Chánh Văn phòng</option></select></div>
+      </div>
+    </section>
+    <section class="panel"><div class="panelTop"><div class="panelTitle"><span class="panelIcon">▤</span> Xem trước · Sửa trực tiếp</div><span class="count">GIẤY MỜI A4</span></div>
+      <div class="paperArea">
+        <div class="paperTop"><span class="paperLabel">✎ &nbsp; Nhấn vào đoạn chữ để sửa tại chỗ</span><span class="paperHint">Nội dung sẽ đồng bộ với biểu mẫu và file Word</span></div>
+        <div class="previewGuide">Bạn có thể nhấp vào trích yếu, câu dẫn, từng thành phần mời, nội dung họp, thời gian, địa điểm và câu kết để sửa trực tiếp. Phần quốc hiệu, thể thức và chức danh người ký giữ theo mẫu chuẩn.</div>
+        <div class="paperScale"><article class="paper" id="paper">
+          <div class="badgeEdit">CHỈNH SỬA TRỰC TIẾP TRONG BẢN XEM TRƯỚC</div>
+          <div class="docHeader"><div>ĐẢNG BỘ TỈNH QUẢNG TRỊ<br><span class="small">ĐẢNG UỶ XÃ LỆ NINH</span><br>✳<div class="docNum">Số: <span id="docNumValue" class="editable" contenteditable="plaintext-only" data-edit="number" spellcheck="false" data-placeholder="..."></span>-GM/ĐU</div></div><div><b>ĐẢNG CỘNG SẢN VIỆT NAM</b><div class="docDate" id="docDate"></div></div></div>
+          <div class="docTitle">GIẤY MỜI</div>
+          <div class="docSubtitle editable" id="docSubtitle" contenteditable="plaintext-only" data-edit="subtitle" spellcheck="false" data-placeholder="Nhấn để nhập trích yếu..."></div>
+          <div class="ornament"><span></span></div>
+          <div class="docLead editable" id="docLead" contenteditable="plaintext-only" data-edit="intro" spellcheck="false" data-placeholder="Nhấn để nhập câu dẫn..."></div>
+          <div class="sectionTitle">* Thành phần mời:</div><div id="docGuests"></div>
+          <button type="button" class="previewAdd" onclick="focusGuestAdd()">＋ Thêm thành phần mời</button>
+          <div id="docAgendaSection" class="docAgendaSection"><div class="sectionTitle">* Nội dung:</div><div id="docAgenda"></div><button type="button" class="previewAdd" onclick="addAgenda()">＋ Thêm nội dung</button></div>
+          <button type="button" id="addAgendaButton" class="previewAdd" onclick="addAgenda()">＋ Thêm mục nội dung họp</button>
+          <div class="meetingMeta"><div><strong>* Thời gian: </strong><em id="docTime" class="editable docTimeValue" contenteditable="plaintext-only" data-edit="time" spellcheck="false"></em></div><div><strong>* Địa điểm: </strong><em id="docVenue" class="editable docLocValue" contenteditable="plaintext-only" data-edit="venue" spellcheck="false"></em></div></div>
+          <div id="docNote" class="docNote"><span>* </span><span id="docNoteText" class="editable" contenteditable="plaintext-only" data-edit="note" data-placeholder="Nhấn để thêm ghi chú (nếu có)..." spellcheck="false"></span></div>
+          <div class="request editable" id="docRequest" contenteditable="plaintext-only" data-edit="closing" spellcheck="false"></div>
+          <div class="docBottom"><div class="rec"><b>Nơi nhận:</b><div class="recText">- Như thành phần mời;<br>- Lưu: VPĐU.</div></div><div class="sign" id="docSign"></div></div>
+        </article></div>
+      </div>
+    </section>
+  </div>
+</main>
+</div>
+<div id="notification" role="alert"><button type="button" onclick="hideNotice()">×</button><span id="notificationText"></span></div>
+
+<script src="./assets/app.js"></script>
+<script>
+const OTHER = [
+ 'Các đồng chí trong Thường trực Đảng uỷ',
+ 'Các đồng chí Uỷ viên Ban Thường vụ, Uỷ viên Ban Chấp hành Đảng bộ xã',
+ 'Lãnh đạo Uỷ ban nhân dân xã',
+ 'Đại diện lãnh đạo các cơ quan tham mưu, giúp việc Đảng uỷ',
+ 'Đại diện lãnh đạo các phòng, ban, đơn vị, tổ chức chính trị - xã hội xã',
+ 'Cấp trưởng các phòng, ban, đơn vị, tổ chức chính trị - xã hội xã',
+ 'Trưởng các tổ chức chính trị - xã hội',
+ 'Bí thư các Đảng uỷ, Bí thư các Chi bộ trực thuộc Đảng uỷ xã',
+ 'Trung tâm Dịch vụ tổng hợp xã (dự và đưa tin)'
+];
+const TT = [
+ 'Các đồng chí trong Thường trực Đảng uỷ',
+ 'Đồng chí UVTV, Chủ tịch Uỷ ban MTTQVN xã',
+ 'Đồng chí UVTV, Trưởng Ban Xây dựng Đảng',
+ 'Đồng chí UVTV, Phó Chủ tịch UBND xã',
+ 'Đồng chí Trưởng phòng Kinh tế',
+ 'Đồng chí Chánh Văn phòng Đảng uỷ',
+ 'Đồng chí Phó Trưởng phòng phụ trách Phòng Văn hoá - Xã hội'
+];
+const BTV = [
+ 'Các đồng chí trong Thường trực Đảng uỷ',
+ 'Các đồng chí Uỷ viên Ban Thường vụ Đảng uỷ',
+ 'Đồng chí Chánh Văn phòng Đảng uỷ',
+ 'Đồng chí Trưởng Phòng Kinh tế',
+ 'Đồng chí Chánh Văn phòng HĐND và UBND xã',
+ 'Đồng chí Trưởng phòng Văn hoá - Xã hội',
+ 'Đồng chí Phó Trưởng phòng Văn hoá - Xã hội'
+];
+const DEFAULT_INTRO={
+ btv:'Ban Thường vụ Đảng uỷ tổ chức Hội nghị để xem xét, cho ý kiến một số nội dung công tác.',
+ tt:'Thường trực Đảng uỷ tổ chức họp bàn một số nội dung công tác trong tuần.',
+ other:'Đảng uỷ xã Lệ Ninh tổ chức cuộc họp triển khai một số nhiệm vụ công tác.'
+};
+const DEFAULT_CLOSING={
+ btv:'Đề nghị các đồng chí sắp xếp thời gian tham dự.',
+ tt:'Đề nghị các đồng chí sắp xếp thời gian tham dự.',
+ other:'Đề nghị các đồng chí sắp xếp thời gian tham dự theo thành phần, thời gian.'
+};
+const q=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const lines=s=>String(s||'').replace(/\r/g,'').split('\n').map(s=>s.trim()).filter(Boolean);
+const cleanGuest=s=>String(s||'').replace(/\u00a0/g,' ').trim().replace(/^[-•]\s*/,'').replace(/[;.]+\s*$/,'').trim();
+const todayISO=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
+function dateVi(s){if(!/^\d{4}-\d{2}-\d{2}$/.test(s||''))return 'ngày ... tháng ... năm ...';const a=s.split('-');return `ngày ${Number(a[2])} tháng ${Number(a[1])} năm ${a[0]}`}
+function weekdayVi(s){const d=new Date(s+'T12:00:00');if(isNaN(d.getTime()))return '';return ['Chủ nhật','thứ Hai','thứ Ba','thứ Tư','thứ Năm','thứ Sáu','thứ Bảy'][d.getDay()]}
+let guestItems=[],seq=0,hiddenPreview=false,timeOverride=null,closingText=DEFAULT_CLOSING.btv;
+function newGuest(text,checked,extra=false){return {id:'guest_'+(++seq),text:cleanGuest(text),checked,extra}}
+function checkedGuests(){return guestItems.filter(x=>x.checked&&cleanGuest(x.text))}
+function displayList(){
+ const host=q('guestList');host.innerHTML='';
+ guestItems.forEach((item)=>{
+   const row=document.createElement('div');row.className='guest-row'+(item.checked?'':' inactive')+(item.extra?' extra-guest':'');
+   const tick=document.createElement('input');tick.type='checkbox';tick.checked=item.checked;tick.setAttribute('aria-label','Mời: '+item.text);tick.addEventListener('change',()=>{item.checked=tick.checked;displayList();render()});
+   const txt=document.createElement('span');txt.className='guest-text';txt.textContent=item.text;txt.id='guest_label_'+item.id;
+   const actions=document.createElement('div');actions.className='guest-actions';
+   for(const [dir,glyph,title] of [[-1,'↑','Đưa lên'],[1,'↓','Đưa xuống']]){
+     const b=document.createElement('button');b.type='button';b.className='move-btn';b.title=title;b.textContent=glyph;
+     b.setAttribute('aria-label',title+': '+item.text);
+     const n=guestItems.indexOf(item),near=findNeighbor(n,dir);
+     b.disabled=!item.checked||near<0;
+     b.addEventListener('click',()=>moveGuest(item.id,dir));actions.append(b);
+   }
+   if(item.extra){const x=document.createElement('button');x.type='button';x.className='delete-btn';x.title='Xóa thành phần bổ sung';x.textContent='×';x.addEventListener('click',()=>deleteGuest(item.id));actions.append(x)}
+   row.append(tick,txt,actions);host.append(row);
+ });
+}
+function findNeighbor(index,dir){for(let i=index+dir;i>=0&&i<guestItems.length;i+=dir){if(guestItems[i].checked)return i}return -1}
+function moveGuest(id,dir){const index=guestItems.findIndex(x=>x.id===id);if(index<0)return;const target=findNeighbor(index,dir);if(target<0)return;
+ [guestItems[index],guestItems[target]]=[guestItems[target],guestItems[index]];displayList();render();
+}
+function deleteGuest(id){guestItems=guestItems.filter(x=>x.id!==id);displayList();render()}
+function selectAll(){guestItems.forEach(x=>x.checked=true);displayList();render()}
+function clearAll(){guestItems.forEach(x=>x.checked=false);displayList();render()}
+function addGuests(){let a=lines(q('extraGuests').value).map(cleanGuest).filter(Boolean);if(!a.length){q('extraGuests').focus();return}
+ a.forEach(name=>guestItems.push(newGuest(name,true,true)));q('extraGuests').value='';displayList();render();
+ notice('Đã thêm '+a.length+' thành phần mời. Dùng ↑/↓ để đưa vào đúng vị trí trong Giấy mời.','success');
+}
+function focusGuestAdd(){q('extraGuests').focus();q('extraGuests').scrollIntoView({block:'center',behavior:'smooth'})}
+const DEFAULT_AGENDA_LAST='Một số công việc quan trọng khác.';
+function changeMeeting(){
+ const kind=q('meeting').value, base=kind==='btv'?BTV:kind==='tt'?TT:OTHER;
+ guestItems=base.map((x,i)=>newGuest(x,kind==='btv'||(kind==='tt'&&i===0),false));
+ q('subtitle').value=kind==='btv'?'Hội nghị Ban Thường vụ lần thứ ':'';
+ q('lead').value=DEFAULT_INTRO[kind];q('agenda').value=DEFAULT_AGENDA_LAST;q('note').value='';q('extraGuests').value='';
+ closingText=DEFAULT_CLOSING[kind];timeOverride=null;
+ displayList();render();
+}
+function venueText(){const v=q('venue');return v.value==='custom'?q('customVenue').value.trim():v.options[v.selectedIndex].text}
+function changeVenue(){q('customVenueField').style.display=q('venue').value==='custom'?'flex':'none';render()}
+function clearTimeOverrideAndRender(){timeOverride=null;render()}
+function formattedTime(){const t=q('time').value.split(':');return `Vào lúc ${t[0]||'...'} giờ ${t[1]||'...'} phút, ${dateVi(q('date').value)} (${weekdayVi(q('date').value)}).`}
+function getPayload(){return {
+ kind:q('meeting').value,number:q('number').value.trim(),issued:q('issued').value,
+ subtitle:q('subtitle').value.trim(),intro:q('lead').value.trim(),
+ members:checkedGuests().map(x=>x.text).join('\n'),agenda:q('agenda').value.trim(),
+ meeting:q('date').value,time:q('time').value,
+ location:venueText().trim(),signer:q('signer').value,note:q('note').value.trim(),
+ closing:closingText.trim(),time_text:timeOverride||'',location_text:''
+}}
+function render(){
+ const f=getPayload();q('docNumValue').textContent=f.number;
+ q('docDate').textContent='Lệ Ninh, '+dateVi(f.issued);
+ q('docSubtitle').textContent=f.subtitle;
+ q('docLead').textContent=f.intro;
+ const selected=checkedGuests();
+ q('docGuests').innerHTML=selected.length?selected.map((x,i)=>{
+  // Chỉ thành phần bổ sung hiển thị nút ↑/↓ ngay trên trang xem trước.
+  // Dữ liệu lấy từ cùng guestItems với danh sách bên trái nên xuất Word đúng thứ tự.
+  const controls=x.extra?`<span class="preview-order-tools"><button type="button" title="Đưa thành phần bổ sung lên" aria-label="Đưa ${esc(x.text)} lên" ${i===0?'disabled':''} data-move-id="${x.id}" data-move-dir="-1">↑</button><button type="button" title="Đưa thành phần bổ sung xuống" aria-label="Đưa ${esc(x.text)} xuống" ${i===selected.length-1?'disabled':''} data-move-id="${x.id}" data-move-dir="1">↓</button></span>`:'';
+  return `<div class="invited${x.extra?' preview-guest':''}"><span>- </span><span class="editable" contenteditable="plaintext-only" spellcheck="false" data-edit="guest" data-id="${x.id}" data-placeholder="Nhập thành phần mời">${esc(x.text)}</span><span>${i===selected.length-1?'.':';'}</span>${controls}</div>`;
+ }).join(''):'<div class="invited" style="color:#9c8b87">(Chưa chọn thành phần mời)</div>';
+ const agenda=lines(f.agenda).map(x=>x.replace(/^\d+[.)]\s*/,''));
+ q('docAgendaSection').style.display=agenda.length?'block':'none';q('addAgendaButton').style.display=agenda.length?'none':'inline-flex';
+ q('docAgenda').innerHTML=agenda.map((item,i)=>`<div class="invited"><span>${i+1}. </span><span class="editable" data-edit="agenda" data-index="${i}" contenteditable="plaintext-only" spellcheck="false">${esc(item)}</span></div>`).join('');
+ q('docTime').textContent=timeOverride||formattedTime();
+ q('docVenue').textContent=f.location?f.location.replace(/\.+$/,'')+'.':'';
+ q('docNoteText').textContent=f.note;
+ q('docRequest').textContent=closingText;
+ const isHiep=f.signer==='hiep';q('docSign').innerHTML=`T/L BAN THƯỜNG VỤ<br>${isHiep?'CHÁNH VĂN PHÒNG':'PHÓ CHÁNH VĂN PHÒNG'}<div class="name">${isHiep?'Nguyễn Văn A (minh họa)':'Trần Thị B (minh họa)'}</div>`;
+}
+function addAgenda(){
+ const items=lines(q('agenda').value);
+ const last=items.length-1;
+ const insertBeforeDefault=last>=0&&/^Một số công việc quan trọng khác\.?$/iu.test(items[last].trim());
+ const at=insertBeforeDefault?last:items.length;
+ items.splice(at,0,'Nội dung mới');q('agenda').value=items.join('\n');render();
+ const entries=q('docAgenda').querySelectorAll('.editable');const n=entries[at];
+ if(n){n.focus();const s=window.getSelection(),range=document.createRange();range.selectNodeContents(n);s.removeAllRanges();s.addRange(range)}
+}
+function syncPreviewValue(el){
+ const type=el.dataset.edit;if(!type)return;
+ const value=(el.innerText||el.textContent||'').replace(/\u00a0/g,' ').replace(/\r/g,'').trim();
+ if(type==='number'){q('number').value=value.replace(/^Số\s*:\s*/i,'').replace(/-?GM\/ĐU$/i,'').trim();return}
+ if(type==='subtitle'){q('subtitle').value=value;return}
+ if(type==='intro'){q('lead').value=value;return}
+ if(type==='closing'){closingText=value;return}
+ if(type==='note'){q('note').value=value.replace(/^\*\s*/,'');return}
+ if(type==='venue'){q('venue').value='custom';q('customVenue').value=value.replace(/\.+$/,'').trim();q('customVenueField').style.display='flex';return}
+ if(type==='time'){timeOverride=value;return}
+ if(type==='guest'){const item=guestItems.find(x=>x.id===el.dataset.id);if(item){item.text=cleanGuest(value);const label=q('guest_label_'+item.id);if(label)label.textContent=item.text}return}
+ if(type==='agenda'){
+   const index=Number(el.dataset.index),items=lines(q('agenda').value).map(x=>x.replace(/^\d+[.)]\s*/,''));
+   if(items[index]!==undefined){items[index]=value.replace(/^\d+[.)]\s*/,'');q('agenda').value=items.join('\n')}
+ }
+}
+function initPreviewEditing(){
+ const paper=q('paper');
+ // Nút ↑/↓ trên bản xem trước cho phép chuyển vị trí ở cả BTV, Thường trực và các cuộc họp khác.
+ paper.addEventListener('click',e=>{
+   const button=e.target.closest('button[data-move-id]');
+   if(button){e.preventDefault();moveGuest(button.dataset.moveId,Number(button.dataset.moveDir));}
+ });
+ // Không dựng lại DOM khi đang gõ (đặc biệt trong lúc IME tiếng Việt đang ghép dấu).
+ paper.addEventListener('input',e=>{const el=e.target.closest('[data-edit]');if(el)syncPreviewValue(el)});
+ paper.addEventListener('compositionend',e=>{const el=e.target.closest('[data-edit]');if(el)syncPreviewValue(el)});
+ paper.addEventListener('focusout',e=>{
+  const el=e.target.closest('[data-edit]');if(!el)return;
+  syncPreviewValue(el);
+  // Đợi trình duyệt hoàn tất chuyển focus trước khi vẽ lại. Nếu render ngay tại
+  // focusout, ô mới được nhấp sẽ bị thay thế giữa lúc click, khiến không nhập được.
+  setTimeout(()=>{
+    const active=document.activeElement;
+    if(active&&paper.contains(active)&&active.closest('[data-edit]'))return;
+    render();
+  },0);
+ });
+ paper.addEventListener('keydown',e=>{const el=e.target.closest('[data-edit]');if(el&&e.key==='Enter'&&['guest','agenda','subtitle','number','time','venue','note'].includes(el.dataset.edit)){e.preventDefault();el.blur()}});
+ paper.addEventListener('paste',e=>{
+  const el=e.target.closest('[data-edit]');if(!el)return;
+  // plaintext-only contenteditable của Chrome tự dán văn bản thuần; không giữ định dạng lạ.
+ });
+}
+function resetForm(){
+ if((q('number').value||q('agenda').value||q('extraGuests').value)&&!window.confirm('Làm mới sẽ xóa dữ liệu đang nhập. Tiếp tục?'))return;
+ q('meeting').value='btv';q('number').value='';q('issued').value=todayISO();q('date').value=todayISO();q('time').value='08:00';
+ q('venue').value='room';q('customVenue').value='';q('signer').value='hiep';timeOverride=null;
+ q('customVenueField').style.display='none';changeMeeting();hideNotice();
+}
+function togglePreview(){hiddenPreview=!hiddenPreview;q('columns').classList.toggle('previewHidden',hiddenPreview);q('togglePreviewBtn').innerHTML=hiddenPreview?'◫ &nbsp; Hiện xem trước':'◫ &nbsp; Ẩn xem trước'}
+function notice(text,type=''){q('notificationText').textContent=text;q('notification').className=type;q('notification').style.display='block'}
+function hideNotice(){q('notification').style.display='none'}
+function validate(f){
+ if(!f.issued||!f.meeting||!f.time)return 'Vui lòng nhập ngày ban hành, ngày họp và giờ họp.';
+ if(!f.intro)return 'Vui lòng nhập câu dẫn mở đầu.';
+ if(!f.members)return 'Vui lòng chọn ít nhất một thành phần mời.';
+ if(!f.location)return 'Vui lòng nhập địa điểm tổ chức.';
+ return '';
+}
+async function exportWord(){return exportInvitation('docx')}
+async function exportInvitation(ext){
+ hideNotice();if(q('extraGuests').value.trim())addGuests();
+ const data=getPayload(),problem=validate(data);if(problem){notice(problem,'error');return}
+ const btn=q('exportBtn'),pdfBtn=q('exportPdfBtn');btn.disabled=true;pdfBtn.disabled=true;
+ try{const blob=await (ext==='pdf'?LeNinh.invitationPDF(data):LeNinh.invitationWord(data));
+ const filename='Giay_moi_'+data.kind+'_'+(data.number.replace(/[^0-9A-Za-z_-]/g,'').slice(0,22)||'Demo')+'.'+ext;
+ LeNinh.save(blob,filename);notice('Đã tạo Giấy mời '+ext.toUpperCase()+': '+filename,'success');
+ }catch(e){notice('Chưa thể xuất tài liệu: '+e.message,'error')}finally{btn.disabled=false;pdfBtn.disabled=false}
+}
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();exportWord()}});
+initPreviewEditing();resetForm();
+
+</script></body></html>
