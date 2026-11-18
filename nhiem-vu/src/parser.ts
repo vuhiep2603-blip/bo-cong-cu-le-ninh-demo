@@ -28,7 +28,7 @@ export function extractDocumentHeader(text:string) {
   // Only accept a dateline with place + comma, never a deadline in the body.
   const dateline=headerText.match(/[\p{L} ]{2,60},\s*ngày\s+(?:(\d{1,2})\s+tháng\s+(\d{1,2})\s+năm\s+(\d{4})|(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4}))/iu);
   const documentDate=dateline?validDate(dateline[1]??dateline[4],dateline[2]??dateline[5],dateline[3]??dateline[6]):'';
-  const stop=/^(?:Kính gửi|Căn cứ|Thực hiện|Nơi nhận|Ngày\s+\d+\s+tháng|I[. ]|II[. ]|III[. ]|\d{1,2}[.)]\s+)/i;
+  const stop=/^(?:Kính gửi|Căn cứ|Thực hiện|Nơi nhận|Chủ trì\s*:|Phối hợp\s*:|Thời hạn\s*:|Sản phẩm\s*:|Ngày\s+\d+\s+tháng|I[. ]|II[. ]|III[. ]|\d{1,2}[.)]\s+)/i;
   let start=-1;
   let subject='';
   for(let i=0;i<header.length;i++) {
