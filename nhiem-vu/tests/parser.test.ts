@@ -48,8 +48,8 @@ Kính gửi: Các cơ quan tham mưu
  expect(analyzed.documentDate).toBe('2026-11-18');
 });
 test('accepts compact issue dates, avoids mistaking task deadlines for issuance',()=>{
- expect(extractDocumentHeader('Số: 15/TB-ĐU\\nLệ Ninh, ngày 05/12/2026\\nTrích yếu: Kết luận cuộc họp'))
+ expect(extractDocumentHeader('Số: 15/TB-ĐU\nLệ Ninh, ngày 05/12/2026\nTrích yếu: Kết luận cuộc họp'))
   .toEqual({number:'15/TB-ĐU',documentDate:'2026-12-05',subject:'Kết luận cuộc họp'});
- expect(extractDocumentHeader('Số: 22-KH/ĐU\\nGiao việc trước ngày 20/12/2026'))
+ expect(extractDocumentHeader('Số: 22-KH/ĐU\nGiao việc trước ngày 20/12/2026'))
   .toMatchObject({number:'22-KH/ĐU',documentDate:''});
 });
