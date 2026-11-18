@@ -4,7 +4,8 @@ import type {Action,Stage,Task} from './model';
 
 const requiredStatus:Record<Action,Task['status'][]> = {
   ACCEPT:['ASSIGNED'],PROGRESS:['WORKING','REVISION'],SUBMIT:['WORKING','REVISION'],
-  APPROVE:['SUBMITTED'],RETURN:['SUBMITTED'],ADMIN_SETTINGS:['ASSIGNED','WORKING','SUBMITTED','REVISION']
+  APPROVE:['SUBMITTED'],RETURN:['SUBMITTED'],ADMIN_SETTINGS:['ASSIGNED','WORKING','SUBMITTED','REVISION'],
+  ARCHIVE:['ASSIGNED','WORKING','SUBMITTED','REVISION','COMPLETE'],RESTORE:['ASSIGNED','WORKING','SUBMITTED','REVISION','COMPLETE']
 };
 export interface Settings {deadline:string;delegateUid:string;delegateUntil:Timestamp|null}
 export async function transitionTask(db:Firestore, task:Task, author:string, action:Action, text:string, stage:Stage, progress:number, settings?:Settings) {
@@ -18,6 +19,9 @@ export async function transitionTask(db:Firestore, task:Task, author:string, act
     if (!current || current.lastEvent!==task.lastEvent || !requiredStatus[action].includes(current.status)) {
       throw stale();
     }
+    if ((action==='ARCHIVE' && current.archived===true)
+      || (action==='RESTORE' && current.archived!==true)
+      || (!['ARCHIVE','RESTORE'].includes(action) && current.archived===true)) throw stale();
     const at = serverTimestamp();
     const patch:DocumentData = {lastEvent:event.id,updatedAt:at};
     if (action==='ACCEPT') patch.status='WORKING';
@@ -26,6 +30,8 @@ export async function transitionTask(db:Firestore, task:Task, author:string, act
     if (action==='APPROVE') Object.assign(patch,{status:'COMPLETE',progress:100});
     if (action==='RETURN') patch.status='REVISION';
     if (action==='ADMIN_SETTINGS') Object.assign(patch,settings);
+    if (action==='ARCHIVE') Object.assign(patch,{archived:true,archivedAt:at,archivedBy:author});
+    if (action==='RESTORE') Object.assign(patch,{archived:false,archivedAt:null,archivedBy:''});
     tx.set(event,{
       author,at,kind:action,text,stage:patch.stage??current.stage,progress:patch.progress??current.progress,
       previousEvent:current.lastEvent,resultId:group==='reviews'?current.lastResult:''
