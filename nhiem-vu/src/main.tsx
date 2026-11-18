@@ -126,7 +126,9 @@ function Assignment({users,profile}:{users:Profile[];profile:Profile}) {
   <div className="fields"><label>Số, ký hiệu<input maxLength={120} value={analysis.source.number} onChange={e=>setAnalysis(a=>({...a,source:{...a.source,number:e.target.value}}))}/></label>
   <label>Ngày ban hành<input type="date" value={analysis.documentDate} onChange={e=>setAnalysis(a=>({...a,documentDate:e.target.value}))}/></label>
   <label>Trích yếu<input maxLength={300} value={analysis.source.subject} onChange={e=>setAnalysis(a=>({...a,source:{...a.source,subject:e.target.value}}))}/></label></div>
-  <p className="muted">Số, ngày ban hành và trích yếu được nhận diện từ phần đầu văn bản; hãy kiểm tra trước khi giao việc. Ngày ban hành hiện chỉ hiển thị để đối chiếu, chưa lưu trong Firestore.</p>
+  <p className="muted">Số, ngày ban hành và trích yếu là thông tin gợi ý, cần kiểm tra với văn bản gốc trước khi giao việc. Ngày ban hành chưa được lưu trong Firestore.</p>
+  {!analysis.documentDate&&analysis.source.number&&<p role="status" className="info">Chưa đọc được ngày ban hành. Tệp PDF có thể bị thiếu chữ số ngày trong lớp văn bản hoặc ngày được chèn dưới dạng ảnh. Hãy xem trang đầu và nhập ngày thủ công; không lấy ngày từ nội dung, số hiệu hay tên tệp.</p>}
+  {!analysis.source.number&&analysis.source.subject&&<p role="status" className="info">Chưa xác định được số, ký hiệu từ tệp. Vui lòng đối chiếu trang đầu văn bản.</p>}
   <ul className="proposals">{analysis.proposals.map((p,i)=><li key={i}>
    <input type="checkbox" aria-label={'Chọn đề xuất '+(i+1)} checked={selected.includes(i)} onChange={e=>setSelected(x=>e.target.checked?[...x,i]:x.filter(n=>n!==i))}/>
    <button type="button" className="link" onClick={()=>useProposal(p,i)}>{p.title}</button>
