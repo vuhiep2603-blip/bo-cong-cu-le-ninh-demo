@@ -5,7 +5,7 @@ import {Timestamp} from 'firebase/firestore';
 import {watchUsers,watchTasks,watchHistory,createTask,changeTask,addUser,editUser} from './backend';
 import {actions,isLate,roles,stages,statuses} from './model';
 import type {Action,Event,Profile,Role,Stage,Task} from './model';
-import {readDocument,ruleAnalyzer} from './parser';
+import {readDocument,ruleAnalyzer,reconcileHeaders} from './parser';
 import type {Analysis,Proposal} from './parser';
 import {AuthGate} from './auth-gate';
 import {Header,Notice,message,useAction} from './ui';
@@ -75,6 +75,7 @@ function Assignment({users,profile}:{users:Profile[];profile:Profile}) {
  const [activeIndex,setActiveIndex]=useState<number|null>(null);
  const [lead,setLead]=useState(''),[partners,setPartners]=useState<string[]>([]);
  const [done,setDone]=useState(''),[associate,setAssociate]=useState(false);
+ const [fileInfo,setFileInfo]=useState('');
  const action=useAction();
  const members=users.filter(u=>u.active);
  function updateDraft(field:keyof Proposal,value:string) {setDraft(d=>({...d,[field]:value}));}
@@ -118,21 +119,24 @@ function Assignment({users,profile}:{users:Profile[];profile:Profile}) {
   <label>Tệp DOCX hoặc PDF (hỗ trợ OCR trang đầu khi thiếu dữ liệu)<input type="file" accept=".docx,.pdf" disabled={action.busy} onChange={e=>{
    const file=e.currentTarget.files?.[0];e.currentTarget.value='';
    if(file) void action.run(async()=>{
+    setFileInfo(file.name);
     const extracted=await readDocument(file);
     const result=await ruleAnalyzer.analyze(extracted.text);
+    let conflictNotice='';
     if(extracted.ocrHeader) {
-      const fallback=extracted.ocrHeader;
-      if(!result.source.number && fallback.number) result.source.number=fallback.number;
-      if(!result.documentDate && fallback.documentDate) result.documentDate=fallback.documentDate;
-      if(!result.source.subject && fallback.subject) result.source.subject=fallback.subject;
+      const merged=reconcileHeaders({...result.source,documentDate:result.documentDate},extracted.ocrHeader);
+      result.source.number=merged.number;
+      result.source.subject=merged.subject;
+      result.documentDate=merged.documentDate;
+      if(merged.conflicts.length) conflictNotice='PDF và OCR cho kết quả khác nhau ở: '+merged.conflicts.join(', ')+'. Vui lòng đối chiếu bản gốc.';
     }
     setAnalysis(result);setSelected([]);setActiveIndex(null);setDraft(blankProposal);setLead('');setPartners([]);setAssociate(true);
-    setDone([extracted.notice,!result.proposals.length?'Chưa nhận diện được nhiệm vụ từ nội dung tệp. Hãy kiểm tra và nhập thủ công nếu cần.':''].filter(Boolean).join(' '));
+    setDone([extracted.notice,conflictNotice,!result.proposals.length?'Chưa nhận diện được nhiệm vụ từ nội dung tệp. Hãy kiểm tra và nhập thủ công nếu cần.':''].filter(Boolean).join(' '));
    });
-  }}/></label>
+  }}/><small>Tệp vừa đọc: {fileInfo||"Chưa chọn tệp"}</small></label>
   <div className="fields"><label>Số, ký hiệu<input maxLength={120} value={analysis.source.number} onChange={e=>setAnalysis(a=>({...a,source:{...a.source,number:e.target.value}}))}/></label>
   <label>Ngày ban hành<input type="date" value={analysis.documentDate} onChange={e=>setAnalysis(a=>({...a,documentDate:e.target.value}))}/></label>
-  <label>Trích yếu<input maxLength={300} value={analysis.source.subject} onChange={e=>setAnalysis(a=>({...a,source:{...a.source,subject:e.target.value}}))}/></label></div>
+  <label>Trích yếu<textarea rows={4} maxLength={600} value={analysis.source.subject} onChange={e=>setAnalysis(a=>({...a,source:{...a.source,subject:e.target.value}}))}/></label></div>
   <p className="muted">Số, ngày ban hành và trích yếu là thông tin gợi ý, cần kiểm tra với văn bản gốc trước khi giao việc. Ngày ban hành chưa được lưu trong Firestore.</p>
   {!analysis.documentDate&&analysis.source.number&&<p role="status" className="info">Chưa đọc được ngày ban hành. Tệp PDF có thể bị thiếu chữ số ngày trong lớp văn bản hoặc ngày được chèn dưới dạng ảnh. Hãy xem trang đầu và nhập ngày thủ công; không lấy ngày từ nội dung, số hiệu hay tên tệp.</p>}
   {!analysis.source.number&&analysis.source.subject&&<p role="status" className="info">Chưa xác định được số, ký hiệu từ tệp. Vui lòng đối chiếu trang đầu văn bản.</p>}
