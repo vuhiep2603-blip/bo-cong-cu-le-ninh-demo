@@ -1,8 +1,10 @@
 import type {Source} from './model';
+import {recognizePdfHeader} from './ocr';
 
 export interface Proposal {title:string; detail:string; lead:string; partners:string; deadline:string; deliverable:string; excerpt:string}
 export interface Analysis {source:Source; documentDate:string; proposals:Proposal[]}
 export interface TaskAnalyzer {analyze(text:string):Promise<Analysis>}
+export interface ReadResult {text:string;ocrHeader?:ReturnType<typeof extractDocumentHeader>;notice?:string}
 
 const assignment = /giao\s|chủ trì|chịu trách nhiệm|có trách nhiệm|đề nghị|yêu cầu/i;
 const prefix = /^\s*(?:\d+(?:\.\d+)*[.)]|[a-z]\)|[-•])\s+/i;
@@ -96,7 +98,7 @@ export async function readDocument(file:File) {
   if (file.size>15*1024*1024) throw Error('Tệp vượt quá 15 MB.');
   if (/\.docx$/i.test(file.name)) {
     const mammoth=await import('mammoth/mammoth.browser');
-    return (await mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()})).value;
+    return {text:(await mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()})).value} satisfies ReadResult;
   }
   if (/\.pdf$/i.test(file.name)) {
     const pdfjs=await import('pdfjs-dist');
@@ -126,8 +128,28 @@ export async function readDocument(file:File) {
           .map(part=>part.str.trim()).join(' ')).join('\n'));
       }
       const text=pages.join('\n');
-      if(!text.trim()) throw Error('Tệp PDF có thể là bản quét (scan) hoặc ảnh, không có lớp chữ để trích xuất. Bản hiện tại chưa hỗ trợ OCR; hãy dùng PDF có thể bôi đen chữ hoặc DOCX.');
-      return text;
+      const header=extractDocumentHeader(text);
+      if(header.number && header.documentDate && header.subject) return {text} satisfies ReadResult;
+      try {
+        const first=await pdf.getPage(1);
+        const ocr=await recognizePdfHeader(first);
+        const ocrHeader=extractDocumentHeader(ocr.text);
+        const useful=Boolean(ocrHeader.number||ocrHeader.documentDate||ocrHeader.subject);
+        if(!useful && !text.trim()) throw Error('OCR không nhận diện được nội dung phần đầu PDF.');
+        return {
+          text:text.trim()?text:ocr.text,
+          ocrHeader,
+          notice:useful
+            ? 'Đã thử OCR tiếng Việt trên trang đầu vì thiếu thông tin. Các trường nhận diện bằng OCR cần đối chiếu với văn bản gốc.'
+            : 'OCR trang đầu chưa khôi phục được các trường thiếu; hãy nhập thủ công theo văn bản gốc.'
+        } satisfies ReadResult;
+      } catch(error) {
+        return {
+          text,
+          notice:'Chưa hoàn tất OCR trang đầu: '+(error instanceof Error?error.message:String(error))+
+            ' Vui lòng đối chiếu số, ngày và trích yếu trên văn bản gốc.'
+        } satisfies ReadResult;
+      }
     } catch(error) {
       if(error instanceof Error) {
         if(error.name==='PasswordException') throw Error('PDF được bảo vệ bằng mật khẩu. Hãy cung cấp bản PDF đã mở khóa hợp lệ.');
