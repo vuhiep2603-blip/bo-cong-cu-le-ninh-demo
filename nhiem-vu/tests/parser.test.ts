@@ -123,3 +123,18 @@ test('number with spaced suffix and OCR dateline',()=>{
  const h='Số: 20/TB - CQTTBCĐ\nQuảng Trị, ngày 14 tháng 10 năm 2026';
  expect(extractDocumentHeader(h)).toMatchObject({number:'20/TB-CQTTBCĐ',documentDate:'2026-10-14'});
 });
+
+test('the supplied directive 31 scan has the title and the OCR dateline O5',()=>{
+ const extracted=`Người ký: CỤC THÔNG TIN VÀ TRUYỀN THÔNG CHÍNH PHỦ
+Cơ quan phát hành: VĂN PHÒNG CHÍNH PHỦ
+Thời gian ký: 06.08.2026 15:23:06 +07:00
+THỦ TƯỚNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+Số: 34 /CT-TTg Hà Nội, ngày O5 tháng 8 năm 2026
+CHỈ THỊ
+Về thực hiện các nhiệm vụ trọng tâm năm học 2026 - 2027
+Thực hiện Nghị quyết số 71-NQ/TW ngày 22 tháng 8 năm 2025`;
+ const header=extractDocumentHeader(extracted);
+ expect(header.documentDate).toBe('2026-08-05');
+ expect(header.subject).toBe('Về thực hiện các nhiệm vụ trọng tâm năm học 2026 - 2027');
+ expect(header.number).toBe('34/CT-TTg'); // raw OCR candidate may misread scanned 31 as 34
+});
