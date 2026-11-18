@@ -52,6 +52,19 @@ try{
   await check('all four embedded styles in a QA diagnostic without altering schedule layout',async()=>{await page.addScriptTag({url:origin+prefix+'qa-diagnostic.js'});await download(()=>page.evaluate(async()=>LeNinh.save(await makeTimesDiagnostic(),'diagnostic.pdf')),'times-four-styles.pdf')});
   await check('document font resources are private and invitation PDF still uses its original path',async()=>{await page.goto(origin+prefix+'giay-moi.html');await page.waitForFunction(()=>typeof LeNinh!=='undefined');await download(()=>page.click('#exportPdfBtn'),'invitation-unchanged.pdf');await openSchedule();await download(clickPdf,'schedule-times-reloaded.pdf')});
  }
+ await check('all invitation templates keep the same recipient block and signature',async()=>{
+  await page.goto(origin+prefix+'giay-moi.html');
+  for(const kind of ['btv','tt','other']){
+   await page.selectOption('#meeting',kind);
+   await page.locator('[onclick="selectAll()"]').click();
+   assert.deepEqual(await page.locator('.recText').innerText().then(text=>text.split('\n')),
+    ['- Như thành phần mời;','- Lưu: VPĐU.']);
+   assert.match(await page.locator('#docSign').innerText(),/Đặng Thái Vũ Hiệp/);
+   await download(()=>page.click('#exportBtn'),`invitation-${kind}.docx`);
+   await download(()=>page.click('#exportPdfBtn'),`invitation-${kind}.pdf`);
+  }
+  await openSchedule();
+ });
  await check('Word, preview editing, save/reload and backup/restore remain functional',async()=>{await page.getByRole('button',{name:'↺ Nạp dữ liệu giả lập'}).click();await page.locator('[data-id="demo_am"][data-field="content"]').first().fill('Lịch đã chỉnh sửa tiếng Việt, không thay đổi dữ liệu khi quản lý font.');await page.locator('[data-id="demo_am"][data-field="content"]').first().blur();await page.evaluate(()=>saveWeek());const before=await page.evaluate(()=>JSON.stringify(state));await page.reload();await page.waitForFunction(()=>state.items.length>0);assert.equal(await page.evaluate(()=>JSON.stringify(state)),before);await download(()=>page.getByRole('button',{name:'↓ Xuất Word',exact:true}).click(),'schedule-word.docx');await download(()=>page.getByRole('button',{name:'↓ Sao lưu dữ liệu',exact:true}).click(),'schedule-backup.json');await page.evaluate(()=>clearWeek());await page.locator('#restoreFile').setInputFiles(resolve(out,'schedule-backup.json'));await page.waitForFunction(()=>state.items.length>0);assert.equal(await page.evaluate(()=>JSON.stringify(state)),before);const backup=await readFile(resolve(out,'schedule-backup.json'),'utf8');assert.ok(!backup.includes('faces'));assert.ok(!backup.includes('postscriptName'));});
  await check('schedule and original logo work at desktop/mobile widths',async()=>{for(const width of [1440,390,320]){await page.setViewportSize({width,height:1000});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));assert.ok(await page.locator('.suiteLogo').evaluate(i=>i.complete&&i.naturalWidth===1254));if(width===390)await page.screenshot({path:resolve(out,'mobile-schedule.png'),fullPage:true})}});
  assert.deepEqual(errors,[]);assert.ok(requests.every(r=>r.method==='GET'&&r.url.startsWith(origin+'/')),'No upload or external font request');await writeFile(resolve(out,'tnr-browser-results.json'),JSON.stringify({checks,errors,realFontTests:!!known,requests},null,2));console.log(checks.length,'browser checks passed',known?'with authentic external TNR fonts':'(real-font cases skipped; supply FONT_QA_DIR)');

@@ -45,17 +45,31 @@ for name in ['schedule-times.pdf','schedule-times-stamped.pdf','schedule-times-l
  (out/(name+'.pdffonts.txt')).write_text(font_report)
  results.append({'file':name,'pages':len(doc),'fonts':sorted(fonts),'all_embedded_subset_unicode':True,'a4':True,'text_bounds_ok':True,'stamp_first_page_only':stamped})
  print('PASS',name,len(doc),'pages; four embedded real TNR styles; Unicode/bounds/stamp OK')
+for kind in ('btv','tt','other'):
+ inv=fitz.open(out/f'invitation-{kind}.pdf')
+ pdf_text=' '.join(' '.join(page.get_text().split()) for page in inv)
+ invitation=Document(out/f'invitation-{kind}.docx')
+ paragraphs=[p.text.strip() for p in invitation.paragraphs]
+ paragraphs.extend(p.text.strip() for table in invitation.tables for row in table.rows
+                   for cell in row.cells for p in cell.paragraphs)
+ assert '- Như thành phần mời; - Lưu: VPĐU.' in pdf_text
+ start=paragraphs.index('- Như thành phần mời;')
+ assert paragraphs[start+1]=='- Lưu: VPĐU.'
+ assert 'Như thành phần mời,' not in pdf_text and not any('Như thành phần mời,' in p for p in paragraphs)
+ assert 'Đặng Thái Vũ Hiệp' in pdf_text and any('Đặng Thái Vũ Hiệp' in p for p in paragraphs)
+ print('PASS invitation',kind,'DOCX/PDF recipients and signer')
 inv=fitz.open(out/'invitation-unchanged.pdf');assert all('Liberation' in f[3] for p in inv for f in p.get_fonts())
 for name in ['schedule-word.docx','schedule-word-no-font.docx']:
  word=Document(out/name);assert len(word.tables[-1].rows)==7
+ assert [column.width.twips for column in word.tables[0].columns]==[3887,5865]
  headings=[(p.text,bool(p.runs[0].bold)) for cell in word.tables[0].rows[0].cells
            for p in cell.paragraphs if p.text in expected_header]
  assert dict(headings)=={**expected_header,'*':False},headings
 with ZipFile(out/'schedule-word.docx') as z:assert not any(n.startswith('word/media/') for n in z.namelist())
 backup=json.loads((out/'schedule-backup.json').read_text());assert backup['format']=='le-ninh-local-backup' and backup['version']==1
 # Frozen baseline digests avoid depending on an unpublished historical commit.
-protected={'giay-moi.html': '4527488d3909f31320dcdf2ae420885976427b5ff2bd86e7cd469d60d803f0dd', 'index.html': '988b6f37c4882807048982204bf7ec025f3c9e389481e87dd09e26023580c096', 'HUONG_DAN.html': 'c0f6492b04f85ad7cad5a1e44b7bd557fdbb0d06225550145fd2c7beaa7afc0e', 'assets/logo.png': 'bb97f2a27055a06fa5b6b51f32e6c64dcdc8c0806e9901817f574b244ce5092b', 'assets/dau_van_phong_can_tron.png': 'e60dab1daf2e580aab62fe20f2733c90e3d8b841f4a29cc2ea49c0b8e8b8f66d', 'assets/templates/mau_btv.docx': 'b354e6b5918fa209c08ef7daab496211e2fa4280720cafabb718a29a28a4aeda', 'assets/templates/mau_thuong_truc.docx': 'c36264943b0b85df22b728a71fb3691a708c5e5a53383b09fa31d1300e5eb049', 'assets/templates/mau_khac.docx': '8818b310e6f71b6e4aa091d986b38103991d71e5d53e4d1e80fca55ef843d242', 'src/core.js': '2612587327380569457fbcf0529553cecf3350dc091ff6ddd30ba720de31e185', 'src/storage.js': '562af9aad71dbc0666ab5f400f2d6e1a28bf90e1302c962762b37b4faa675b94', 'src/stamp.js': 'a3c42aba2b5976cf869f7f4566730cb129e1c56f75f1408697ac37b0c760af4b'}
+protected={'index.html': '988b6f37c4882807048982204bf7ec025f3c9e389481e87dd09e26023580c096', 'HUONG_DAN.html': 'c0f6492b04f85ad7cad5a1e44b7bd557fdbb0d06225550145fd2c7beaa7afc0e', 'assets/logo.png': 'bb97f2a27055a06fa5b6b51f32e6c64dcdc8c0806e9901817f574b244ce5092b', 'assets/dau_van_phong_can_tron.png': 'e60dab1daf2e580aab62fe20f2733c90e3d8b841f4a29cc2ea49c0b8e8b8f66d', 'assets/templates/mau_khac.docx': '8818b310e6f71b6e4aa091d986b38103991d71e5d53e4d1e80fca55ef843d242', 'src/core.js': '2612587327380569457fbcf0529553cecf3350dc091ff6ddd30ba720de31e185', 'src/storage.js': '562af9aad71dbc0666ab5f400f2d6e1a28bf90e1302c962762b37b4faa675b94', 'src/stamp.js': 'a3c42aba2b5976cf869f7f4566730cb129e1c56f75f1408697ac37b0c760af4b'}
 for name,digest in protected.items():
  assert hashlib.sha256((root/name).read_bytes()).hexdigest()==digest,name
 (out/'tnr-export-verification.json').write_text(json.dumps(results,ensure_ascii=False,indent=2))
-print('PASS invitation path, original HTML/templates/logo/seal and calendar storage/normalization code unchanged.')
+print('PASS original index/help pages, other invitation template, logo, seal and calendar storage/normalization code unchanged.')
