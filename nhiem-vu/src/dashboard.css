@@ -1,0 +1,19 @@
+.dash{display:grid;gap:1rem}.dash-filter{padding-bottom:.65rem}.dash-note{font-size:.84rem;margin:.2rem 0 .8rem}
+.dash-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+.dash-kpi{border:1px solid var(--line);border-radius:12px;background:#fffdf9;padding:1rem;box-shadow:0 6px 18px #6d10210b;display:grid;gap:.3rem}
+.dash-kpi span{color:#6c5453;font-size:.9rem}.dash-kpi strong{font-size:clamp(1.6rem,2.5vw,2.1rem);color:var(--wine);line-height:1.15}
+.dash-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;align-items:stretch}
+.dash-panel h3{margin-bottom:.65rem}.dash-completion{display:flex;align-items:baseline;gap:.6rem;color:#65474c}
+.dash-completion strong{font-size:2rem;color:var(--wine)}
+.dash-track{background:#f0e4df;border-radius:999px;height:12px;overflow:hidden;min-width:0}
+.dash-fill{background:#a64b5b;height:100%;border-radius:inherit;transition:width .2s}
+.dash-breakdown{display:grid;gap:.8rem;margin-top:1.5rem}
+.dash-barrow,.dash-staff{display:grid;grid-template-columns:minmax(0,130px) minmax(0,1fr) 2.2rem;align-items:center;gap:.65rem;font-size:.88rem}
+.dash-barrow strong,.dash-staff strong{text-align:right;color:var(--wine)}
+.dash-staff{grid-template-columns:minmax(0,170px) minmax(0,1fr) 2.2rem;margin:.8rem 0}
+.dash-staff>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dash-assigned{background:#a68b77}.dash-working{background:#d9a34d}.dash-revision{background:#d67d57}.dash-submitted{background:#6b78af}.dash-complete{background:#43896b}
+.dash-tabs{display:flex;flex-wrap:wrap;gap:.4rem;margin:.8rem 0 1rem}
+.dash-tabs button[aria-pressed="true"]{background:var(--wine);border-color:var(--wine);color:white}
+@media(max-width:850px){.dash-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-grid{grid-template-columns:1fr}}
+@media(max-width:480px){.dash-kpis{gap:.5rem}.dash-kpi{padding:.7rem}.dash-barrow{grid-template-columns:minmax(0,105px) minmax(0,1fr) 1.8rem}.dash-staff{grid-template-columns:minmax(0,105px) minmax(0,1fr) 1.8rem}}
