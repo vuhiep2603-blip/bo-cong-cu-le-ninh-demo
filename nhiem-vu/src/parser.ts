@@ -44,7 +44,7 @@ export async function readDocument(file:File) {
     const pdfjs=await import('pdfjs-dist');
     const worker=await import('pdfjs-dist/build/pdf.worker.min.mjs?url');
     pdfjs.GlobalWorkerOptions.workerSrc=worker.default;
-    const loading=pdfjs.getDocument({data:await file.arrayBuffer(),enableXfa:false});
+    const loading=pdfjs.getDocument({data:await file.arrayBuffer(),enableXfa:false,useSystemFonts:true});
     try {
       const pdf=await loading.promise;
       if (pdf.numPages>150) throw Error('PDF vượt quá 150 trang.');
@@ -55,8 +55,16 @@ export async function readDocument(file:File) {
         pages.push(content.items.map(item=>'str' in item ? item.str+(item.hasEOL?'\n':' ') : '').join(''));
       }
       const text=pages.join('\n');
-      if(!text.trim()) throw Error('PDF không có lớp văn bản. Vui lòng cung cấp DOCX hoặc PDF có thể chọn chữ.');
+      if(!text.trim()) throw Error('Tệp PDF có thể là bản quét (scan) hoặc ảnh, không có lớp chữ để trích xuất. Bản hiện tại chưa hỗ trợ OCR; hãy dùng PDF có thể bôi đen chữ hoặc DOCX.');
       return text;
+    } catch(error) {
+      if(error instanceof Error) {
+        if(error.name==='PasswordException') throw Error('PDF được bảo vệ bằng mật khẩu. Hãy cung cấp bản PDF đã mở khóa hợp lệ.');
+        if(error.name==='InvalidPDFException') throw Error('PDF không hợp lệ hoặc tệp đã bị hỏng. Hãy thử mở tệp trong trình đọc PDF trước.');
+        if(error.name==='MissingPDFException') throw Error('Không tìm thấy nội dung PDF. Hãy chọn lại tệp.');
+        if(error.message.startsWith('PDF vượt quá') || error.message.startsWith('Tệp PDF có thể')) throw error;
+      }
+      throw Error('Không đọc được PDF trên trình duyệt. Hãy thử tải lại trang (Ctrl+F5) hoặc kiểm tra PDF có thể chọn chữ. Chi tiết kỹ thuật: '+(error instanceof Error?error.message:String(error)));
     } finally { await loading.destroy(); }
   }
   throw Error('Chỉ hỗ trợ DOCX và PDF có lớp văn bản.');
