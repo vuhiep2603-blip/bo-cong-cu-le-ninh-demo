@@ -53,3 +53,32 @@ test('accepts compact issue dates, avoids mistaking task deadlines for issuance'
  expect(extractDocumentHeader('Số: 22-KH/ĐU\nGiao việc trước ngày 20/12/2026'))
   .toMatchObject({number:'22-KH/ĐU',documentDate:''});
 });
+
+test('reads multi-line conclusion title without confusing it with body',()=>{
+ const header=`Số: 20/TB-CQTTBCĐ
+Quảng Trị, ngày 14 tháng 10 năm 2026
+THÔNG BÁO
+Kết luận của đồng chí Bí thư Tỉnh ủy, Trưởng Ban Chỉ đạo về phát triển
+khoa học, công nghệ, đổi mới sáng tạo và chuyển đổi số tỉnh Quảng Trị tại
+phiên họp chuyên đề về khoa học, công nghệ, đổi mới sáng tạo và chuyển đổi số
+phục vụ phát triển kinh tế - xã hội và đánh giá kết quả công tác quý III/2026
+Ngày 13 tháng 10 năm 2026, tại trụ sở Tỉnh ủy, diễn ra phiên họp.`;
+ const result=extractDocumentHeader(header);
+ expect(result.number).toBe('20/TB-CQTTBCĐ');
+ expect(result.documentDate).toBe('2026-10-14');
+ expect(result.subject).toContain('đánh giá kết quả công tác quý III/2026');
+ expect(result.subject).not.toContain('Ngày 13');
+});
+test('reads official number with no colon, an overlaid day and multi-line v/v',()=>{
+ const header=`Số 363 -CV/TU Quảng Trị, ngày 22 tháng 7 năm 2026
+về việc triển khai thực hiện Công văn số
+777/TTg-TCCV, ngày 10/7/2026 và
+814/TTg-TCCV, ngày 20/7/2026
+của Thủ tướng Chính phủ
+Kính gửi: các cơ quan tham mưu`;
+ const result=extractDocumentHeader(header);
+ expect(result.number).toBe('363-CV/TU');
+ expect(result.documentDate).toBe('2026-07-22');
+ expect(result.subject).toContain('của Thủ tướng Chính phủ');
+ expect(result.subject).not.toContain('Kính gửi');
+});
