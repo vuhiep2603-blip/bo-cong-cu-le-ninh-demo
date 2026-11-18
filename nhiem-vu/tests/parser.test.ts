@@ -82,3 +82,12 @@ Kính gửi: các cơ quan tham mưu`;
  expect(result.subject).toContain('của Thủ tướng Chính phủ');
  expect(result.subject).not.toContain('Kính gửi');
 });
+
+test('detects an issuance date wrapped onto the next text row',()=>{
+ const h='ĐẢNG ỦY XÃ LỆ NINH\nSố: 102-CV/ĐU\nLệ Ninh, ngày\n18 tháng 11 năm 2026\nV/v chỉ đạo nhiệm vụ';
+ expect(extractDocumentHeader(h).documentDate).toBe('2026-11-18');
+});
+test('does not guess an absent issuance day',()=>{
+ const h='TỈNH ỦY QUẢNG TRỊ\nSố -CV/TU\nQuảng Trị, ngày tháng 7 năm 2026\nV/v triển khai công việc';
+ expect(extractDocumentHeader(h).documentDate).toBe('');
+});
