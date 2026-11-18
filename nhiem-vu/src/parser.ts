@@ -23,8 +23,8 @@ export function extractDocumentHeader(text:string) {
   const header=lines.slice(0,Math.min(55,boundary<0?55:boundary));
   const headerText=header.join('\n');
   // Handle "Số: 20/TB-...", "Số 363 -CV/TU" and mixed PDF overlay spacing.
-  const numberMatch=headerText.match(/(?:^|[^\p{L}])Số\s*[:：]?\s*([0-9]{1,6})\s*[-–—/]\s*([A-ZĐ][A-ZĐ0-9./\-–—]*)/iu);
-  const number=numberMatch?(numberMatch[1]+(numberMatch[0].includes('/')?'/':'-')+numberMatch[2]).replace(/[–—]/g,'-'):'';
+  const numberMatch=headerText.match(/(?:^|[^\p{L}])Số\s*[:：]?\s*([0-9]{1,6})\s*([-–—/])\s*([A-ZĐ][A-ZĐ0-9./\-–—]*)/iu);
+  const number=numberMatch?(numberMatch[1]+(numberMatch[2]==='/'?'/':'-')+numberMatch[3]).replace(/[–—]/g,'-'):'';
   // Only accept a dateline with place + comma, never a deadline in the body.
   const dateline=headerText.match(/[\p{L} ]{2,60},\s*ngày\s+(?:(\d{1,2})\s+tháng\s+(\d{1,2})\s+năm\s+(\d{4})|(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4}))/iu);
   const documentDate=dateline?validDate(dateline[1]??dateline[4],dateline[2]??dateline[5],dateline[3]??dateline[6]):'';
@@ -97,7 +97,20 @@ export async function readDocument(file:File) {
       for(let index=1;index<=pdf.numPages;index++) {
         const page=await pdf.getPage(index);
         const content=await page.getTextContent();
-        pages.push(content.items.map(item=>'str' in item ? item.str+(item.hasEOL?'\n':' ') : '').join(''));
+        // Sort positioned PDF text items into visual lines. This catches overlaid
+        // number/day stamps emitted at the END of the PDF content stream.
+        const positioned=content.items.filter(item=>'str' in item && 'transform' in item)
+          .map(item=>({str:item.str,x:item.transform[4],y:item.transform[5]}))
+          .filter(item=>item.str.trim());
+        positioned.sort((a,b)=>b.y-a.y || a.x-b.x);
+        const lines:{y:number;parts:typeof positioned}[]=[];
+        for(const item of positioned) {
+          const previous=lines.at(-1);
+          if(previous && Math.abs(previous.y-item.y)<=4) previous.parts.push(item);
+          else lines.push({y:item.y,parts:[item]});
+        }
+        pages.push(lines.map(line=>line.parts.sort((a,b)=>a.x-b.x)
+          .map(part=>part.str.trim()).join(' ')).join('\n'));
       }
       const text=pages.join('\n');
       if(!text.trim()) throw Error('Tệp PDF có thể là bản quét (scan) hoặc ảnh, không có lớp chữ để trích xuất. Bản hiện tại chưa hỗ trợ OCR; hãy dùng PDF có thể bôi đen chữ hoặc DOCX.');
