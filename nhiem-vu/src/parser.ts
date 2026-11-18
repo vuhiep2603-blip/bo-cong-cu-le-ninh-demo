@@ -4,7 +4,7 @@ import {recognizePdfHeader} from './ocr';
 export interface Proposal {title:string; detail:string; lead:string; partners:string; deadline:string; deliverable:string; excerpt:string}
 export interface Analysis {source:Source; documentDate:string; proposals:Proposal[]}
 export interface TaskAnalyzer {analyze(text:string):Promise<Analysis>}
-export interface ReadResult {text:string;ocrHeader?:ReturnType<typeof extractDocumentHeader>;notice?:string}
+export interface ReadResult {text:string;ocrHeader?:ReturnType<typeof extractDocumentHeader>;notice?:string;ocrConfidence?:number}
 
 const assignment = /giao\s|chủ trì|chịu trách nhiệm|có trách nhiệm|đề nghị|yêu cầu/i;
 const prefix = /^\s*(?:\d+(?:\.\d+)*[.)]|[a-z]\)|[-•])\s+/i;
@@ -77,6 +77,28 @@ export function extractDocumentHeader(text:string) {
   return {number:number.slice(0,120),documentDate,subject:subject.replace(/\s+/g,' ').trim().slice(0,300)};
 }
 
+export function reconcileHeaders(
+  embedded:ReturnType<typeof extractDocumentHeader>,
+  scanned:ReturnType<typeof extractDocumentHeader>
+) {
+  const a=embedded.number.replace(/\s+/g,'').toUpperCase();
+  const b=scanned.number.replace(/\s+/g,'').toUpperCase();
+  // A shorter partial code (20/TB) must not outrank a matching complete code
+  // (20/TB-CQTTBCĐ), but unrelated OCR guesses cannot overwrite a PDF value.
+  const number=!a ? scanned.number : (b.startsWith(a) && b.length>a.length ? scanned.number : embedded.number);
+  const conflicts:string[]=[];
+  if(a&&b&&a!==b&&!b.startsWith(a)&&!a.startsWith(b)) conflicts.push('số, ký hiệu');
+  if(embedded.documentDate&&scanned.documentDate&&embedded.documentDate!==scanned.documentDate) conflicts.push('ngày ban hành');
+  if(embedded.subject&&scanned.subject&&embedded.subject!==scanned.subject
+    && !scanned.subject.startsWith(embedded.subject)&&!embedded.subject.startsWith(scanned.subject)) conflicts.push('trích yếu');
+  return {
+    number, documentDate:embedded.documentDate||scanned.documentDate,
+    subject:(!embedded.subject || (scanned.subject.startsWith(embedded.subject)&&scanned.subject.length>embedded.subject.length))
+      ? scanned.subject : embedded.subject,
+    conflicts
+  };
+}
+
 export const ruleAnalyzer:TaskAnalyzer = {
   async analyze(text) {
     const lines = text.normalize('NFC').split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
@@ -147,6 +169,7 @@ export async function readDocument(file:File) {
         return {
           text:text.trim()?text:ocr.text,
           ocrHeader,
+          ocrConfidence:ocr.confidence,
           notice:useful
             ? 'Đã thử OCR tiếng Việt trên trang đầu vì thiếu thông tin. Các trường nhận diện bằng OCR cần đối chiếu với văn bản gốc.'
             : 'OCR trang đầu chưa khôi phục được các trường thiếu; hãy nhập thủ công theo văn bản gốc.'
