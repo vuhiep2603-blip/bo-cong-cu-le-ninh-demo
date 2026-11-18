@@ -19,29 +19,33 @@ function validDate(day:string,month:string,year:string) {
 export function extractDocumentHeader(text:string) {
   const lines=text.normalize('NFC').replace(/\u00a0/g,' ').split(/\r?\n/)
     .map(line=>line.replace(/\s+/g,' ').trim()).filter(Boolean);
-  const header=lines.slice(0,35);
-  // Document number can follow an agency label on the same line.
-  const number=header.map(line=>{
-    const match=line.match(/(?:^|[\s|])Số\s*[:：]\s*([0-9]{1,6}\s*[-–—/]\s*[A-ZĐ0-9][A-ZĐ0-9./\-–—]*)/i);
-    return match?.[1]?.replace(/\s+/g,'').replace(/[–—]/g,'-')??'';
-  }).find(Boolean)??'';
-  const issue=header.map(line=>line.match(/^(?:[^,:\n]{1,65},\s*)?ngày\s+(?:(\d{1,2})\s+tháng\s+(\d{1,2})\s+năm\s+(\d{4})|(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4}))/i)).find(Boolean);
-  const documentDate=issue?validDate(issue[1]??issue[4],issue[2]??issue[5],issue[3]??issue[6]):'';
-  // Vietnamese administrative documents commonly carry the summary after V/v
-  // or an explicit "Trích yếu"; some use the line after the title "CÔNG VĂN".
+  const boundary=lines.findIndex((line,index)=>index>2 && /^(?:Kính gửi|Căn cứ|Thực hiện|Nơi nhận)\s*[:：]?/i.test(line));
+  const header=lines.slice(0,Math.min(55,boundary<0?55:boundary));
+  const headerText=header.join('\n');
+  // Handle "Số: 20/TB-...", "Số 363 -CV/TU" and mixed PDF overlay spacing.
+  const numberMatch=headerText.match(/(?:^|[^\p{L}])Số\s*[:：]?\s*([0-9]{1,6})\s*[-–—/]\s*([A-ZĐ][A-ZĐ0-9./\-–—]*)/iu);
+  const number=numberMatch?(numberMatch[1]+(numberMatch[0].includes('/')?'/':'-')+numberMatch[2]).replace(/[–—]/g,'-'):'';
+  // Only accept a dateline with place + comma, never a deadline in the body.
+  const dateline=headerText.match(/[\p{L} ]{2,60},\s*ngày\s+(?:(\d{1,2})\s+tháng\s+(\d{1,2})\s+năm\s+(\d{4})|(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4}))/iu);
+  const documentDate=dateline?validDate(dateline[1]??dateline[4],dateline[2]??dateline[5],dateline[3]??dateline[6]):'';
+  const stop=/^(?:Kính gửi|Căn cứ|Thực hiện|Nơi nhận|Ngày\s+\d+\s+tháng|I[. ]|II[. ]|III[. ]|\d{1,2}[.)]\s+)/i;
+  let start=-1;
   let subject='';
   for(let i=0;i<header.length;i++) {
-    const line=header[i];
-    const match=line.match(/(?:^|[\s|])(?:V\/v|Về việc|Trích yếu)\s*[:：]?\s+(.+)$/i);
-    if(match?.[1]) {subject=match[1];break;}
+    const match=header[i].match(/^(?:V\/v|Về việc|Trích yếu)\s*[:：]?\s*(.*)$/i);
+    if(match) {start=i;subject=match[1];break;}
   }
-  if(!subject) {
-    const index=header.findIndex(line=>/^(?:KẾ HOẠCH|THÔNG BÁO|QUYẾT ĐỊNH|BÁO CÁO|TỜ TRÌNH|CÔNG VĂN|CHƯƠNG TRÌNH|KẾT LUẬN)$/i.test(line));
-    if(index>=0) {
+  if(start>=0) {
+    for(const line of header.slice(start+1,start+10)) {
+      if(stop.test(line) || /^(?:ĐẢNG CỘNG SẢN|CỘNG HÒA|Số\s*:)/i.test(line)) break;
+      subject+=(subject?' ':'')+line;
+    }
+  } else {
+    const title=header.findIndex(line=>/^(?:KẾ HOẠCH|THÔNG BÁO|QUYẾT ĐỊNH|BÁO CÁO|TỜ TRÌNH|CÔNG VĂN|CHƯƠNG TRÌNH|KẾT LUẬN)$/i.test(line));
+    if(title>=0) {
       const parts:string[]=[];
-      for(const line of header.slice(index+1,index+5)) {
-        if(/^(?:Căn cứ|Kính gửi|I[. ]|1[.) ]|Điều\s+1|Nơi nhận|ĐẢNG|ỦY BAN|UBND|Số\s*:)/i.test(line))break;
-        if(/^(?:[-–—]?\s*ngày\s+\d|\d{1,2}\s+tháng\s+\d)/i.test(line))break;
+      for(const line of header.slice(title+1,title+12)) {
+        if(stop.test(line) || /^(?:ĐẢNG CỘNG SẢN|CỘNG HÒA|ỦY BAN|Số\s*:)/i.test(line)) break;
         parts.push(line);
       }
       subject=parts.join(' ');
