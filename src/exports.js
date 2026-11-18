@@ -1,4 +1,3 @@
-import {createTimesPdf} from './tnr-pdf.js';
 import {loadOriginalStamp} from './stamp.js';
 import {unzipSync,zipSync,strFromU8,strToU8} from 'fflate';
 import {Document,Packer,Paragraph,TextRun,Table,TableRow,TableCell,AlignmentType,VerticalAlign,WidthType,BorderStyle} from 'docx';
@@ -84,10 +83,10 @@ export async function schedulePDF(raw,options={}){
   const d=normalize(raw);
   const body=DAYS.map((day,i)=>{
     const am=sessionItems(d,i,'Sáng'),pm=sessionItems(d,i,'Chiều');
-    const stack=d.weekend_rest&&i>=5&&!am.length&&!pm.length?[{text:'Nghỉ',italics:true,alignment:'center'}]:[['Buổi sáng:',am],['Buổi chiều:',pm]].flatMap(([text,items])=>[{text,bold:true},...items.map(x=>({text:activityText(x)}))]);
+    const stack=d.weekend_rest&&i>=5&&!am.length&&!pm.length?[{text:'Nghỉ',italics:true,alignment:'center'}]:[['Buổi sáng:',am],['Buổi chiều:',pm]].flatMap(([text,items])=>[{text,bold:true},...items.map(x=>({text:activityText(x).normalize('NFC')}))]);
     return [{stack:[{text:day,bold:true},{text:`(${vi(iso(add(date(d.start),i))).slice(0,5)})`,bold:true,italics:true}],alignment:'center'},{stack}];
   });
-  return createTimesPdf([{columns:[{width:203,text:[{text:'ĐẢNG UỶ XÃ LỆ NINH',bold:false},{text:'\nVĂN PHÒNG\n*',bold:true}],alignment:'center'},{width:'*',stack:[{text:'LỊCH CÔNG TÁC TUẦN\nCỦA BAN THƯỜNG VỤ ĐẢNG UỶ',bold:true},{text:`(Từ ngày ${vi(d.start)} đến ${vi(d.end)})`,italics:true},{text:'-----'}],alignment:'center'}],margin:[0,0,0,18]},{table:{widths:[80,'*'],body},layout:{paddingTop:()=>5,paddingBottom:()=>5,paddingLeft:()=>6,paddingRight:()=>6}},{text:d.note,italics:true,fontSize:12,alignment:'center',margin:[0,13,0,0]}],stamp?((page)=>page===1?{image:stamp.image,width:stamp.width,height:stamp.height,absolutePosition:{...stamp.absolutePosition}}:null):undefined,JSON.stringify(d));
+  return pdf([{columns:[{width:203,text:[{text:'ĐẢNG UỶ XÃ LỆ NINH',bold:false},{text:'\nVĂN PHÒNG\n*',bold:true}],alignment:'center'},{width:'*',stack:[{text:'LỊCH CÔNG TÁC TUẦN\nCỦA BAN THƯỜNG VỤ ĐẢNG UỶ',bold:true},{text:`(Từ ngày ${vi(d.start)} đến ${vi(d.end)})`,italics:true},{text:'-----'}],alignment:'center'}],margin:[0,0,0,18]},{table:{widths:[80,'*'],body},layout:{paddingTop:()=>5,paddingBottom:()=>5,paddingLeft:()=>6,paddingRight:()=>6}},{text:d.note.normalize('NFC'),italics:true,fontSize:12,alignment:'center',margin:[0,13,0,0]}],stamp?((page)=>page===1?{image:stamp.image,width:stamp.width,height:stamp.height,absolutePosition:{...stamp.absolutePosition}}:null):undefined);
 }
 export async function invitationPDF(form){
   const d=invitationData(form);
