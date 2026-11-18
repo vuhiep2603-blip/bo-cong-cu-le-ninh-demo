@@ -91,3 +91,24 @@ test('does not guess an absent issuance day',()=>{
  const h='TỈNH ỦY QUẢNG TRỊ\nSố -CV/TU\nQuảng Trị, ngày tháng 7 năm 2026\nV/v triển khai công việc';
  expect(extractDocumentHeader(h).documentDate).toBe('');
 });
+
+test('OCR scan header identifies issue date and stops the summary at place/date',()=>{
+ const scan=`THỦ TƯỚNG CHÍNH PHỦ
+Số: ††/TTg-TCCV
+V/v sắp xếp cơ sở giáo dục mầm
+non, phổ thông, thường xuyên,
+giáo dục nghề nghiệp công lập
+cấp tỉnh, cấp xã
+Hà Nội, ngày 10 tháng 7 năm 2026
+Kính gửi: Bộ Giáo dục và Đào tạo`;
+ const result=extractDocumentHeader(scan);
+ expect(result.number).toBe(''); // handwritten number not reliably OCR readable
+ expect(result.documentDate).toBe('2026-07-10');
+ expect(result.subject).toBe('sắp xếp cơ sở giáo dục mầm non, phổ thông, thường xuyên, giáo dục nghề nghiệp công lập cấp tỉnh, cấp xã');
+});
+test('OCR mixed heading preserves issue date on shared number/date row',()=>{
+ const ocr='Số: 20/TB-CQTTBCĐ Quảng Trị, ngày 14 tháng 10 năm 2026\\nTHÔNG BÁO';
+ const result=extractDocumentHeader(ocr);
+ expect(result.number).toBe('20/TB-CQTTBCĐ');
+ expect(result.documentDate).toBe('2026-10-14');
+});
