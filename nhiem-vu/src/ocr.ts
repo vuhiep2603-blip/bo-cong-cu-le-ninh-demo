@@ -1,3 +1,4 @@
+import type {PDFPageProxy} from 'pdfjs-dist';
 // OCR assets are served from THIS GitHub Pages app origin; never use remote OCR APIs.
 // Bundled by the QA/production Pages workflow from pinned npm dependencies.
 interface OCRWorker {
@@ -14,7 +15,7 @@ function ocrAssets(path:string) {
 }
 function loadRuntime():Promise<OCRRuntime> {
   if(loader) return loader;
-  loader=new Promise((resolve,reject)=>{
+  loader=new Promise<OCRRuntime>((resolve,reject)=>{
     if(window.Tesseract) {resolve(window.Tesseract);return;}
     const script=document.createElement('script');
     script.src=ocrAssets('tesseract.min.js');
@@ -23,12 +24,9 @@ function loadRuntime():Promise<OCRRuntime> {
     script.onerror=()=>reject(Error('Thiếu bộ OCR cài tại website. Không tải dữ liệu văn bản sang dịch vụ khác.'));
     document.head.appendChild(script);
   }).catch(error=>{loader=null;throw error;});
-  return loader;
+  return loader!;
 }
-export async function recognizePdfHeader(page:{
-  getViewport(options:{scale:number}):{width:number;height:number};
-  render(options:{canvasContext:CanvasRenderingContext2D;viewport:{width:number;height:number}}):{promise:Promise<unknown>}
-}):Promise<{text:string;confidence:number}> {
+export async function recognizePdfHeader(page:PDFPageProxy):Promise<{text:string;confidence:number}> {
   const viewport=page.getViewport({scale:2.25});
   const canvas=document.createElement('canvas');
   // Cropping the heading minimizes accidental capture of deadlines in the body.
@@ -37,7 +35,7 @@ export async function recognizePdfHeader(page:{
   const context=canvas.getContext('2d',{willReadFrequently:true});
   if(!context)throw Error('Trình duyệt không hỗ trợ vẽ trang PDF để nhận diện.');
   // Canvas clipping is applied by the output canvas height.
-  await page.render({canvasContext:context,viewport}).promise;
+  await page.render({canvas,canvasContext:context,viewport}).promise;
   const Tesseract=await loadRuntime();
   const worker=await Tesseract.createWorker('vie',1,{
     workerPath:ocrAssets('worker.min.js'),
