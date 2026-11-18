@@ -1,7 +1,8 @@
 import {test,expect} from '@playwright/test';
 import type {Page} from '@playwright/test';
 import {initializeTestEnvironment} from '@firebase/rules-unit-testing';
-import {doc,setDoc} from 'firebase/firestore';
+import {doc,getDoc,setDoc} from 'firebase/firestore';
+import {readFile} from 'node:fs/promises';
 import {zipSync,strToU8} from 'fflate';
 import {join} from 'node:path';
 import {staff} from './fixtures.mjs';
@@ -140,4 +141,33 @@ test('Vietnamese screens, local DOCX/PDF, assignment to review and responsive ta
  await expect(page.getByRole('heading',{name:'Quản trị cán bộ'})).toBeVisible();
  await worker.close();
  await reviewer.close();
+});
+
+
+test('authenticated account remains unprovisioned with Firestore deny-all rules',async({page})=>{
+ const options = {projectId:'demo-vpdu',firestore:{host:'127.0.0.1',port:8080}};
+ const currentRules = await readFile('firestore.rules','utf8');
+ const restricted = await initializeTestEnvironment({
+  ...options,firestore:{...options.firestore,
+   rules:"rules_version = '2'; service cloud.firestore { match /databases/{database}/documents { match /{path=**} { allow read, write: if false; } } }"
+  }
+ });
+ try {
+  const uid = await signIn(page,'qa-deny-all',false);
+  await expect(page.getByText('Tài khoản chưa được cấp quyền. Liên hệ Chánh Văn phòng.',{exact:true})).toBeVisible();
+  await expect(page.getByRole('navigation')).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'Đăng xuất'})).toBeVisible();
+  await restricted.withSecurityRulesDisabled(async ctx=>{
+   expect((await getDoc(doc(ctx.firestore(),'users',uid))).exists()).toBe(false);
+  });
+  await page.getByRole('button',{name:'Đăng xuất'}).click();
+  await expect(page.getByRole('button',{name:'Đăng nhập bằng Google'})).toBeEnabled();
+  await page.reload();
+  await expect(page.getByRole('button',{name:'Đăng nhập bằng Google'})).toBeEnabled();
+  await expect(page.getByRole('button',{name:'Đăng xuất'})).toHaveCount(0);
+ } finally {
+  await restricted.cleanup();
+  const restored=await initializeTestEnvironment({...options,firestore:{...options.firestore,rules:currentRules}});
+  await restored.cleanup();
+ }
 });

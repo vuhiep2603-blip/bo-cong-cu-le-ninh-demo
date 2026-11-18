@@ -65,6 +65,8 @@ Mở `http://127.0.0.1:4180/tests/demo.html` và chọn VP01 để xem tổng qu
 
 ## Chuẩn bị GitHub Pages
 
+Xem [quy trình nghiệm thu Google Sign-In trên trang thử](GOOGLE_SIGN_IN_ACCEPTANCE.md) để đóng gói, kiểm tra và lập kế hoạch xuất bản sau khi được duyệt.
+
 Build Vite với bốn biến `VITE_FIREBASE_*` trong `.env.example`. Nội dung `nhiem-vu/dist/` cần được đặt tại `nhiem-vu/` trong artifact website, cùng với `index.html`, `lich-cong-tac.html`, `giay-moi.html`, `HUONG_DAN.html`, `.nojekyll` và `assets/` gốc. Có thể chạy `node nhiem-vu/package-pages.mjs <thư_mục_output_mới>` từ checkout sau khi build để tạo đúng artifact. Chạy một máy chủ HTTP trong thư mục đầu ra và kiểm tra đường dẫn `/nhiem-vu/` trước khi xuất bản.
 
 Khi đã được phê duyệt, cấu hình Pages dùng GitHub Actions với quyền `pages: write` và `id-token: write` chỉ ở job xuất bản. Bước build dùng `npm ci`, `npm run build` trong `nhiem-vu/` và script đóng gói trên. Dùng `actions/upload-pages-artifact` và `actions/deploy-pages` cho artifact đã kiểm tra. Lưu Web config dưới dạng Repository Variables, không đưa credential quản trị vào workflow. Cách triển khai từ thư mục gốc của nhánh sẽ không tự build Vite.
