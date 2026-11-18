@@ -37,7 +37,7 @@ export function extractDocumentHeader(text:string) {
   }
   // Datelines may be wrapped into separate visual rows or contain spaced digits.
   // Restrict candidate dates to the administrative heading, not the task body.
-  const datePattern=/ngày\s*(\d{1,2})\s*tháng\s*(\d{1,2})\s*năm\s*(\d{4})|ngày\s*(\d{1,2})\s*[\/.\-]\s*(\d{1,2})\s*[\/.\-]\s*(\d{4})/iu;
+  const datePattern=/ngày\\s*([0-9OoIl]{1,2})\\s*tháng\\s*([0-9OoIl]{1,2})\\s*năm\\s*(\\d{4})|ngày\\s*([0-9OoIl]{1,2})\\s*[\\/.\\-]\\s*([0-9OoIl]{1,2})\\s*[\\/.\\-]\\s*(\\d{4})/iu;
   let documentDate='';
   const shortHeader=header.slice(0,Math.min(header.length,18));
   for(let i=0;i<shortHeader.length;i++) {
@@ -47,7 +47,8 @@ export function extractDocumentHeader(text:string) {
     const mayWrap=i<shortHeader.length-1 ? line+' '+shortHeader[i+1] : line;
     const match=dateLine ? (mayWrap.match(datePattern)??line.match(datePattern)) : null;
     if(match) {
-      documentDate=validDate(match[1]??match[4],match[2]??match[5],match[3]??match[6]);
+      const normalizeOcrDigits=(s:string)=>s.replace(/[Oo]/g,'0').replace(/[Il]/g,'1');
+      documentDate=validDate(normalizeOcrDigits(match[1]??match[4]),normalizeOcrDigits(match[2]??match[5]),match[3]??match[6]);
       if(documentDate) break;
     }
   }
@@ -64,7 +65,7 @@ export function extractDocumentHeader(text:string) {
       subject+=(subject?' ':'')+line;
     }
   } else {
-    const title=header.findIndex(line=>/^(?:KẾ HOẠCH|THÔNG BÁO|QUYẾT ĐỊNH|BÁO CÁO|TỜ TRÌNH|CÔNG VĂN|CHƯƠNG TRÌNH|KẾT LUẬN)$/i.test(line));
+    const title=header.findIndex(line=>/^(?:KẾ HOẠCH|THÔNG BÁO|QUYẾT ĐỊNH|BÁO CÁO|TỜ TRÌNH|CÔNG VĂN|CHƯƠNG TRÌNH|KẾT LUẬN|CHỈ THỊ|NGHỊ QUYẾT|HƯỚNG DẪN|QUY ĐỊNH)$/i.test(line));
     if(title>=0) {
       const parts:string[]=[];
       for(const line of header.slice(title+1,title+12)) {
