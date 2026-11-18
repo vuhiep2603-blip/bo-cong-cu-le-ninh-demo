@@ -115,12 +115,19 @@ function Assignment({users,profile}:{users:Profile[];profile:Profile}) {
   });
  }
  return <div className="columns"><section className="panel"><h3>Đọc văn bản</h3>
-  <label>Tệp DOCX hoặc PDF có lớp văn bản<input type="file" accept=".docx,.pdf" disabled={action.busy} onChange={e=>{
+  <label>Tệp DOCX hoặc PDF (hỗ trợ OCR trang đầu khi thiếu dữ liệu)<input type="file" accept=".docx,.pdf" disabled={action.busy} onChange={e=>{
    const file=e.currentTarget.files?.[0];e.currentTarget.value='';
    if(file) void action.run(async()=>{
-    const result=await ruleAnalyzer.analyze(await readDocument(file));
-    setAnalysis(result);setSelected([]);setActiveIndex(null);setDraft(blankProposal);setLead('');setPartners([]);setAssociate(true);setDone('');
-    if(!result.proposals.length) setDone('Đã đọc tệp nhưng chưa nhận diện được nội dung giao việc. Hãy đối chiếu số, ngày, trích yếu và nhập nhiệm vụ thủ công nếu cần.');
+    const extracted=await readDocument(file);
+    const result=await ruleAnalyzer.analyze(extracted.text);
+    if(extracted.ocrHeader) {
+      const fallback=extracted.ocrHeader;
+      if(!result.source.number && fallback.number) result.source.number=fallback.number;
+      if(!result.documentDate && fallback.documentDate) result.documentDate=fallback.documentDate;
+      if(!result.source.subject && fallback.subject) result.source.subject=fallback.subject;
+    }
+    setAnalysis(result);setSelected([]);setActiveIndex(null);setDraft(blankProposal);setLead('');setPartners([]);setAssociate(true);
+    setDone([extracted.notice,!result.proposals.length?'Chưa nhận diện được nhiệm vụ từ nội dung tệp. Hãy kiểm tra và nhập thủ công nếu cần.':''].filter(Boolean).join(' '));
    });
   }}/></label>
   <div className="fields"><label>Số, ký hiệu<input maxLength={120} value={analysis.source.number} onChange={e=>setAnalysis(a=>({...a,source:{...a.source,number:e.target.value}}))}/></label>
