@@ -73,6 +73,8 @@ Khi đã được phê duyệt, cấu hình Pages dùng GitHub Actions với quy
 
 ## Kiến trúc và quyền dữ liệu
 
+Xem [checklist nghiệm thu ADMIN và phương án xuất bản Rules](FIRESTORE_RULES_ACCEPTANCE.md).
+
 | Nơi lưu | Nội dung và quyền |
 | --- | --- |
 | `users/{uid}` | Hồ sơ đối chiếu UID, email đã xác minh và trạng thái kích hoạt. Một người xem hồ sơ của mình. ADMIN xem danh mục, cấp và khóa cán bộ ngoài ADMIN. |

@@ -51,7 +51,7 @@ try {
           delegateUid:pending?deputy:'',delegateUntil:pending?Timestamp.fromMillis(now.toMillis()+86400000):null
         });
         if (pending) transaction.set(doc(task,'results',result),{
-          author:lead,at:now,kind:'SUBMIT',text:'Đã hoàn thành báo cáo minh họa.',stage:topic.stage,progress:topic.progress
+          author:lead,at:now,kind:'SUBMIT',text:'Đã hoàn thành báo cáo minh họa.',stage:topic.stage,progress:topic.progress,previousEvent:'',resultId:''
         });
         if (index===topics.length-1) transaction.set(counter,{number,taskId:id});
       }

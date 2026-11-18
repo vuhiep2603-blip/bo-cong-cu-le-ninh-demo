@@ -22,14 +22,18 @@ service cloud.firestore {
         && get(user(request.auth.uid)).data.active == true
         && get(user(request.auth.uid)).data.email == request.auth.token.email;
     }
-    function admin() { return active() && get(user(request.auth.uid)).data.role == 'ADMIN'; }
-    function deputy() { return active() && get(user(request.auth.uid)).data.role == 'DEPUTY'; }
+    function hasRole(role, code) {
+      let profile = get(user(request.auth.uid)).data;
+      return profile.role == role && profile.code == code;
+    }
+    function admin() { return active() && hasRole('ADMIN','VP01'); }
+    function deputy() { return active() && hasRole('DEPUTY','VP02'); }
     function readTask(t) {
       return active() && (admin() || request.auth.uid in t.assignees
         || (deputy() && t.delegateUid == request.auth.uid));
     }
     function delegate(t) {
-      return deputy() && t.delegateUid == request.auth.uid && request.time < t.delegateUntil;
+      return deputy() && t.delegateUid == request.auth.uid && t.delegateUntil is timestamp && request.time < t.delegateUntil;
     }
     function str(s, n) { return s is string && s.size() > 0 && s.size() <= n && s.matches('(?s).*[^\\s].*'); }
     function date(d) { return d is string && d.matches('[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])'); }
@@ -78,7 +82,7 @@ service cloud.firestore {
         && (!exists(c) || get(c).data.taskId != id);
     }
     function eventData(e, group) {
-      return e.keys().hasOnly(['author','at','kind','text','stage','progress'])
+      return e.keys().hasOnly(['author','at','kind','text','stage','progress','previousEvent','resultId'])
         && e.author == request.auth.uid && e.at == request.time && str(e.text,8000)
         && stage(e.stage) && e.progress is int && e.progress >= 0 && e.progress <= 100
         && ((group == 'updates' && e.kind in ['ACCEPT','PROGRESS','ADMIN_SETTINGS'])
@@ -88,7 +92,7 @@ service cloud.firestore {
     function backed(id, group, kind, t) {
       let path = eventPath(id, group, t.lastEvent);
       let e = getAfter(path).data;
-      return t.lastEvent.matches(group + '_[A-Za-z0-9]+') && !exists(path) && eventData(e, group) && e.kind == kind
+      return t.lastEvent.matches(group + '_[A-Za-z0-9]+') && !exists(path) && e.kind == kind
         && e.stage == t.stage && e.progress == t.progress;
     }
     function worker(before, t, id, keys) {
@@ -101,10 +105,17 @@ service cloud.firestore {
           || (before.status in ['WORKING','REVISION'] && t.status == 'SUBMITTED'
             && t.lastResult == t.lastEvent && backed(id,'results','SUBMIT',t)));
     }
+    function validResult(id, before) {
+      let result = get(eventPath(id,'results',before.lastResult)).data;
+      return result.kind == 'SUBMIT' && result.author in before.assignees
+        && str(result.text,8000) && result.at is timestamp
+        && result.stage == before.stage && result.progress == before.progress
+        && (admin() || result.author != request.auth.uid);
+    }
     function review(before,t,id,keys) {
       return (admin() || delegate(before)) && before.status == 'SUBMITTED'
         && keys.hasOnly(['status','lastEvent','updatedAt','progress'])
-        && str(before.lastResult,100) && exists(eventPath(id,'results',before.lastResult))
+        && before.lastResult.matches('results_[A-Za-z0-9]+') && validResult(id,before)
         && ((t.status == 'COMPLETE' && t.progress == 100 && backed(id,'reviews','APPROVE',t))
           || (t.status == 'REVISION' && t.progress == before.progress && backed(id,'reviews','RETURN',t)));
     }
@@ -131,9 +142,16 @@ service cloud.firestore {
       }
       match /{group}/{eventId} {
         allow get, list: if group in ['updates','results','reviews'] && readTask(get(task(id)).data);
-        allow create: if active() && eventId.matches(group + '_[A-Za-z0-9]+') && eventData(request.resource.data,group)
-          && get(task(id)).data.lastEvent != eventId && getAfter(task(id)).data.lastEvent == eventId
-          && getAfter(task(id)).data.updatedAt == request.time;
+        allow create: if active() && eventId.matches(group + '_[A-Za-z0-9]+')
+          && eventData(request.resource.data,group) && linksToTransition(id,group,eventId);
+        function linksToTransition(id,group,eventId) {
+          let before = get(task(id)).data;
+          let after = getAfter(task(id)).data;
+          let event = request.resource.data;
+          return before.lastEvent != eventId && after.lastEvent == eventId && after.updatedAt == request.time
+            && event.previousEvent == before.lastEvent
+            && event.resultId == (group == 'reviews' ? before.lastResult : '');
+        }
       }
     }
     match /systemSettings/{year} {

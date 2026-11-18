@@ -166,7 +166,10 @@ function TaskDetail({task,profile,users,nameOf,close}:{task:Task;profile:Profile
  const worker=task.assignees.includes(profile.uid);
  const canWork=worker&&['WORKING','REVISION'].includes(task.status);
  const admin=profile.role==='ADMIN';
- const canReview=task.status==='SUBMITTED'&&(admin||(profile.role==='DEPUTY'&&task.delegateUid===profile.uid&&(task.delegateUntil?.toMillis()??0)>Date.now()));
+ const canReviewStatus=task.status==='SUBMITTED'&&(admin||(profile.role==='DEPUTY'&&task.delegateUid===profile.uid&&(task.delegateUntil?.toMillis()??0)>Date.now()));
+ const latestResult=events.find(event=>event.id===task.lastResult && event.kind==='SUBMIT');
+ const ownSubmission=Boolean(!admin&&latestResult?.author===profile.uid);
+ const canReview=canReviewStatus&&Boolean(latestResult)&&!ownSubmission;
  function send(kind:Action) {
   void action.run(async()=>{
    confirmVersion();
@@ -183,6 +186,7 @@ function TaskDetail({task,profile,users,nameOf,close}:{task:Task;profile:Profile
   {nameOf(task.leadUid)&&<p><strong>Chủ trì:</strong> {nameOf(task.leadUid)}</p>}
   {admin&&task.assignees.length>1&&<p><strong>Phối hợp:</strong> {task.assignees.slice(1).map(nameOf).filter(Boolean).join(', ')}</p>}
   <Notice text={action.error||historyError}/>
+  {canReviewStatus&&ownSubmission&&<p className="info">Người được ủy quyền không nghiệm thu kết quả do chính mình nộp.</p>}
   {stale&&<p className="info">Nhiệm vụ vừa thay đổi. <button onClick={()=>{setText('');setEditVersion(null);}}>Nạp lại thông tin</button></p>}
   {worker&&task.status==='ASSIGNED'&&<button className="primary" disabled={action.busy} onClick={()=>send('ACCEPT')}>Tiếp nhận</button>}
   {(canWork||canReview)&&<div className="action-box">

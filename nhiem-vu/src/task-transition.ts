@@ -1,4 +1,4 @@
-import {collection,doc,runTransaction,serverTimestamp} from 'firebase/firestore';
+import {collection,doc,getDocFromServer,runTransaction,serverTimestamp} from 'firebase/firestore';
 import type {DocumentData,Firestore,Timestamp} from 'firebase/firestore';
 import type {Action,Stage,Task} from './model';
 
@@ -12,10 +12,11 @@ export async function transitionTask(db:Firestore, task:Task, author:string, act
   const target = doc(db,'tasks',task.id);
   const log = collection(target,group);
   const event = doc(log,group+'_'+doc(log).id);
+  const stale = () => Error('Nhiệm vụ vừa được cập nhật. Hãy kiểm tra phiên bản mới trước khi gửi lại.');
   await runTransaction(db,async tx=>{
     const current = (await tx.get(target)).data() as Task|undefined;
     if (!current || current.lastEvent!==task.lastEvent || !requiredStatus[action].includes(current.status)) {
-      throw Error('Nhiệm vụ vừa được cập nhật. Hãy kiểm tra phiên bản mới trước khi gửi lại.');
+      throw stale();
     }
     const at = serverTimestamp();
     const patch:DocumentData = {lastEvent:event.id,updatedAt:at};
@@ -25,7 +26,17 @@ export async function transitionTask(db:Firestore, task:Task, author:string, act
     if (action==='APPROVE') Object.assign(patch,{status:'COMPLETE',progress:100});
     if (action==='RETURN') patch.status='REVISION';
     if (action==='ADMIN_SETTINGS') Object.assign(patch,settings);
-    tx.set(event,{author,at,kind:action,text,stage:patch.stage??current.stage,progress:patch.progress??current.progress});
+    tx.set(event,{
+      author,at,kind:action,text,stage:patch.stage??current.stage,progress:patch.progress??current.progress,
+      previousEvent:current.lastEvent,resultId:group==='reviews'?current.lastResult:''
+    });
     tx.update(target,patch);
+  }).catch(async error=>{
+    // Rules can deny a stale journal link before Firestore reports a transaction conflict.
+    if (error?.code==='permission-denied') {
+      const latest = (await getDocFromServer(target).catch(()=>null))?.data();
+      if (latest && latest.lastEvent!==task.lastEvent) throw stale();
+    }
+    throw error;
   });
 }

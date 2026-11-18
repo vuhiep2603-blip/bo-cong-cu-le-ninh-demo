@@ -11,6 +11,7 @@ import {staff} from './fixtures.mjs';
 let env;
 beforeAll(async()=>{
  env=await initializeTestEnvironment({projectId:'demo-vpdu',firestore:{rules:await readFile('firestore.rules','utf8')}});
+ await env.clearFirestore();
  await env.withSecurityRulesDisabled(async ctx=>{
   await Promise.all(staff.map(({uid,...data})=>setDoc(doc(ctx.firestore(),'users',uid),data)));
  });
@@ -28,9 +29,13 @@ async function create(admin,year,override={},source=false) {
   if(source) tx.set(doc(admin,'sourceDocuments',id),{taskId:id,number:'01/QA',subject:'Giả lập',createdAt:at});
  });
 }
-function move(client,author,id,group,sequence,kind,patch,{stage='DRAFT',progress=0,text='Nội dung kiểm thử'}={}) {
+async function move(client,author,id,group,sequence,kind,patch,options={}) {
+ const {stage='DRAFT',progress=0,text='Nội dung kiểm thử'}=options;
+ const current=(await getDoc(doc(client,'tasks',id))).data();
+ const previousEvent=options.previousEvent??current.lastEvent;
+ const resultId=options.resultId??(group==='reviews'?current.lastResult:'');
  const batch=writeBatch(client),entry=group+'_'+sequence,at=serverTimestamp();
- batch.set(doc(client,'tasks',id,group,entry),{kind,text,author,at,stage,progress});
+ batch.set(doc(client,'tasks',id,group,entry),{kind,text,author,at,stage,progress,previousEvent,resultId});
  batch.update(doc(client,'tasks',id),{updatedAt:at,lastEvent:entry,...patch,...(group==='results'?{lastResult:entry}:{})});
  return batch.commit();
 }
@@ -104,8 +109,8 @@ test('review cannot approve preexisting task without a stored result; invalid ex
  const another=await create(admin,'2030');
  const batch=writeBatch(lead),at=serverTimestamp();
  batch.update(doc(lead,'tasks',another),{status:'WORKING',updatedAt:at,lastEvent:'updates_a'});
- batch.set(doc(lead,'tasks',another,'updates','updates_a'),{kind:'ACCEPT',text:'Đã nhận',author:'qa-lead',at,stage:'DRAFT',progress:0});
- batch.set(doc(lead,'tasks',another,'reviews','updates_a'),{kind:'APPROVE',text:'Giả',author:'qa-lead',at,stage:'DRAFT',progress:0});
+ batch.set(doc(lead,'tasks',another,'updates','updates_a'),{kind:'ACCEPT',text:'Đã nhận',author:'qa-lead',at,stage:'DRAFT',progress:0,previousEvent:'',resultId:''});
+ batch.set(doc(lead,'tasks',another,'reviews','updates_a'),{kind:'APPROVE',text:'Giả',author:'qa-lead',at,stage:'DRAFT',progress:0,previousEvent:'',resultId:''});
  await assertFails(batch.commit());
 });
 
@@ -122,4 +127,67 @@ test('simultaneous edits cannot silently overwrite a newer task version',async()
  assert.equal(attempts.filter(a=>a.status==='fulfilled').length,1);
  assert.equal(attempts.filter(a=>a.status==='rejected' && a.reason.message.includes('vừa được cập nhật')).length,1);
  assert.equal((await getDocs(collection(lead,'tasks',id,'updates'))).size,2);
+});
+
+test('rules reject stale direct updates and reviews tied to a superseded result',async()=>{
+ const admin=db('qa-admin'),lead=db('qa-lead');
+ const id=await create(admin,'2032');
+ await move(lead,'qa-lead',id,'updates','a','ACCEPT',{status:'WORKING'});
+ await move(lead,'qa-lead',id,'updates','b','PROGRESS',{progress:35},{progress:35});
+ await assertFails(move(lead,'qa-lead',id,'updates','c','PROGRESS',{progress:20},{progress:20,previousEvent:'updates_a'}));
+ assert.equal((await getDoc(doc(lead,'tasks',id))).data().progress,35);
+ await move(lead,'qa-lead',id,'results','a','SUBMIT',{status:'SUBMITTED',progress:80},{progress:80});
+ await move(admin,'qa-admin',id,'reviews','a','RETURN',{status:'REVISION'},{progress:80});
+ await move(lead,'qa-lead',id,'results','b','SUBMIT',{status:'SUBMITTED',progress:90},{progress:90});
+ await assertFails(move(admin,'qa-admin',id,'reviews','b','APPROVE',{status:'COMPLETE',progress:100},{progress:100,resultId:'results_a'}));
+ await move(admin,'qa-admin',id,'reviews','c','APPROVE',{status:'COMPLETE',progress:100},{progress:100});
+ const review=(await getDoc(doc(admin,'tasks',id,'reviews','reviews_c'))).data();
+ assert.equal(review.previousEvent,'results_b');
+ assert.equal(review.resultId,'results_b');
+ assert.equal((await getDocs(collection(admin,'tasks',id,'reviews'))).size,2);
+});
+test('expired or revoked delegation and own submissions cannot be approved by DEPUTY',async()=>{
+ const admin=db('qa-admin'),deputy=db('qa-deputy'),lead=db('qa-lead');
+ const id=await create(admin,'2033',{assignees:['qa-lead','qa-deputy']});
+ await move(lead,'qa-lead',id,'updates','a','ACCEPT',{status:'WORKING'});
+ await move(deputy,'qa-deputy',id,'results','a','SUBMIT',{status:'SUBMITTED',progress:90},{progress:90});
+ const until=Timestamp.fromMillis(Date.now()+3600000);
+ await move(admin,'qa-admin',id,'updates','b','ADMIN_SETTINGS',{delegateUid:'qa-deputy',delegateUntil:until},{progress:90});
+ const approve=()=>move(deputy,'qa-deputy',id,'reviews','test','APPROVE',{status:'COMPLETE',progress:100},{progress:100});
+ await assertFails(approve());
+ await move(admin,'qa-admin',id,'reviews','a','RETURN',{status:'REVISION'},{progress:90});
+ await move(lead,'qa-lead',id,'results','b','SUBMIT',{status:'SUBMITTED',progress:90},{progress:90});
+ await env.withSecurityRulesDisabled(ctx=>updateDoc(doc(ctx.firestore(),'tasks',id),{delegateUntil:Timestamp.fromMillis(0)}));
+ await assertFails(approve());
+ await move(admin,'qa-admin',id,'updates','c','ADMIN_SETTINGS',{delegateUid:'',delegateUntil:null},{progress:90});
+ await assertFails(approve());
+ await move(admin,'qa-admin',id,'reviews','b','APPROVE',{status:'COMPLETE',progress:100},{progress:100});
+});
+test('a role label alone and unprovisioned or locked accounts cannot grant themselves access',async()=>{
+ const admin=db('qa-admin');
+ for (const uid of ['unknown','qa-locked','qa-deputy','qa-lead']) {
+  await assertFails(setDoc(doc(db(uid),'users',uid),{code:'VP01',role:'ADMIN',active:true,name:'Giả lập',phone:'',email:uid+'@example.invalid'}));
+ }
+ await assertFails(setDoc(doc(admin,'users','second-admin'),{code:'VP01',role:'ADMIN',active:true,name:'Giả lập',phone:'',email:'second-admin@example.invalid'}));
+ await env.withSecurityRulesDisabled(ctx=>setDoc(doc(ctx.firestore(),'users','wrong-code'),{code:'VP03',role:'ADMIN',active:true,name:'Giả lập',phone:'',email:'wrong-code@example.invalid'}));
+ await assertFails(getDocs(collection(db('wrong-code'),'users')));
+ await assertFails(create(db('wrong-code'),'2034'));
+});
+
+test('a task cannot change without its event or be reviewed against an invalid result',async()=>{
+ const admin=db('qa-admin'),lead=db('qa-lead');
+ const id=await create(admin,'2035');
+ const task=doc(lead,'tasks',id);
+ await assertFails(updateDoc(task,{status:'WORKING',updatedAt:serverTimestamp(),lastEvent:'updates_missing'}));
+ await assertFails(setDoc(doc(task,'updates','updates_orphan'),{
+  author:'qa-lead',at:serverTimestamp(),kind:'ACCEPT',text:'Không có giao dịch nhiệm vụ',
+  stage:'DRAFT',progress:0,previousEvent:'',resultId:''
+ }));
+ await assertFails(move(lead,'qa-admin',id,'updates','forged','ACCEPT',{status:'WORKING'}));
+ await move(lead,'qa-lead',id,'updates','a','ACCEPT',{status:'WORKING'});
+ await move(lead,'qa-lead',id,'results','a','SUBMIT',{status:'SUBMITTED',progress:80},{progress:80});
+ await env.withSecurityRulesDisabled(ctx=>updateDoc(doc(ctx.firestore(),'tasks',id,'results','results_a'),{author:'qa-locked'}));
+ await assertFails(move(admin,'qa-admin',id,'reviews','a','APPROVE',{status:'COMPLETE',progress:100},{progress:100}));
+ assert.equal((await getDoc(task)).data().status,'SUBMITTED');
+ assert.equal((await getDocs(collection(task,'reviews'))).size,0);
 });
