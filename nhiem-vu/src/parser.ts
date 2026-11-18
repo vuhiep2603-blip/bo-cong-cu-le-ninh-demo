@@ -20,13 +20,12 @@ export function extractDocumentHeader(text:string) {
   const lines=text.normalize('NFC').replace(/\u00a0/g,' ').split(/\r?\n/)
     .map(line=>line.replace(/\s+/g,' ').trim()).filter(Boolean);
   const header=lines.slice(0,35);
-  const joined=header.join('\n');
   // Document number can follow an agency label on the same line.
   const number=header.map(line=>{
     const match=line.match(/(?:^|[\s|])Số\s*[:：]\s*([0-9]{1,6}\s*[-–—/]\s*[A-ZĐ0-9][A-ZĐ0-9./\-–—]*)/i);
     return match?.[1]?.replace(/\s+/g,'').replace(/[–—]/g,'-')??'';
   }).find(Boolean)??'';
-  const issue=joined.match(/(?:ngày\s+(\d{1,2})\s+tháng\s+(\d{1,2})\s+năm\s+(\d{4}))|(?:ngày\s+(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4}))/i);
+  const issue=header.map(line=>line.match(/^(?:[^,:\\n]{1,65},\\s*)?ngày\\s+(?:(\\d{1,2})\\s+tháng\\s+(\\d{1,2})\\s+năm\\s+(\\d{4})|(\\d{1,2})[\\/.\\-](\\d{1,2})[\\/.\\-](\\d{4}))/i)).find(Boolean);
   const documentDate=issue?validDate(issue[1]??issue[4],issue[2]??issue[5],issue[3]??issue[6]):'';
   // Vietnamese administrative documents commonly carry the summary after V/v
   // or an explicit "Trích yếu"; some use the line after the title "CÔNG VĂN".
