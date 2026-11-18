@@ -10,11 +10,13 @@ export interface Clock {toMillis():number}
 export interface Task extends TaskInput {
   id:string; status:Status; stage:Stage; progress:number; updatedAt:Clock; createdAt:Clock; createdBy:string;
   delegateUid:string; delegateUntil:Clock|null; sourceId:string; lastEvent:string; lastResult:string;
+  archived?:boolean; archivedAt?:Clock|null; archivedBy?:string;
 }
-export type Action = 'ACCEPT'|'PROGRESS'|'SUBMIT'|'APPROVE'|'RETURN'|'ADMIN_SETTINGS';
+export type Action = 'ACCEPT'|'PROGRESS'|'SUBMIT'|'APPROVE'|'RETURN'|'ADMIN_SETTINGS'|'ARCHIVE'|'RESTORE';
 export const actions:Record<Action,string> = {
   ACCEPT:'Tiếp nhận', PROGRESS:'Cập nhật tiến độ', SUBMIT:'Nộp kết quả',
-  APPROVE:'Nghiệm thu', RETURN:'Yêu cầu sửa', ADMIN_SETTINGS:'Cập nhật thời hạn / ủy quyền'
+  APPROVE:'Nghiệm thu', RETURN:'Yêu cầu sửa', ADMIN_SETTINGS:'Cập nhật thời hạn / ủy quyền',
+  ARCHIVE:'Xóa vào thùng rác', RESTORE:'Khôi phục nhiệm vụ'
 };
 export interface Event {id:string; author:string; at:Clock|null; kind:Action; text:string; stage:Stage; progress:number}
 export interface Source {number:string; subject:string}
