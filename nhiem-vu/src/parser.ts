@@ -43,7 +43,7 @@ export function extractDocumentHeader(text:string) {
       if(documentDate) break;
     }
   }
-  const stop=/^(?:Kính gửi|Căn cứ|Thực hiện|Nơi nhận|Chủ trì\s*:|Phối hợp\s*:|Thời hạn\s*:|Sản phẩm\s*:|[\p{L} ]{2,55},\s*ngày\s+\d+|Ngày\s+\d+\s+tháng|I[. ]|II[. ]|III[. ]|\d{1,2}[.)]\s+)/i;
+  const stop=/^(?:Kính gửi|Căn cứ|Thực hiện|Nơi nhận|Chủ trì\s*:|Phối hợp\s*:|Thời hạn\s*:|Sản phẩm\s*:|[\p{L} ]{2,55},\s*ngày\s+\d+|Ngày\s+\d+\s+tháng|I[. ]|II[. ]|III[. ]|\d{1,2}[.)]\s+)/iu;
   let start=-1;
   let subject='';
   for(let i=0;i<header.length;i++) {
