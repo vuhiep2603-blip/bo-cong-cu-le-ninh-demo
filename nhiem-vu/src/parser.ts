@@ -25,9 +25,22 @@ export function extractDocumentHeader(text:string) {
   // Handle "Số: 20/TB-...", "Số 363 -CV/TU" and mixed PDF overlay spacing.
   const numberMatch=headerText.match(/(?:^|[^\p{L}])Số\s*[:：]?\s*([0-9]{1,6})\s*([-–—/])\s*([A-ZĐ][A-ZĐ0-9./\-–—]*)/iu);
   const number=numberMatch?(numberMatch[1]+(numberMatch[2]==='/'?'/':'-')+numberMatch[3]).replace(/[–—]/g,'-'):'';
-  // Only accept a dateline with place + comma, never a deadline in the body.
-  const dateline=headerText.match(/[\p{L} ]{2,60},\s*ngày\s+(?:(\d{1,2})\s+tháng\s+(\d{1,2})\s+năm\s+(\d{4})|(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4}))/iu);
-  const documentDate=dateline?validDate(dateline[1]??dateline[4],dateline[2]??dateline[5],dateline[3]??dateline[6]):'';
+  // Datelines may be wrapped into separate visual rows or contain spaced digits.
+  // Restrict candidate dates to the administrative heading, not the task body.
+  const datePattern=/ngày\s*(\d{1,2})\s*tháng\s*(\d{1,2})\s*năm\s*(\d{4})|ngày\s*(\d{1,2})\s*[\/.\-]\s*(\d{1,2})\s*[\/.\-]\s*(\d{4})/iu;
+  let documentDate='';
+  const shortHeader=header.slice(0,Math.min(header.length,18));
+  for(let i=0;i<shortHeader.length;i++) {
+    const line=shortHeader[i];
+    const dateLine=/(?:^|,)\s*ngày\b/iu.test(line)
+      && (/^[^,]{0,90},\s*ngày\b/iu.test(line) || /^\s*ngày\b/iu.test(line));
+    const mayWrap=i<shortHeader.length-1 ? line+' '+shortHeader[i+1] : line;
+    const match=dateLine ? (mayWrap.match(datePattern)??line.match(datePattern)) : null;
+    if(match) {
+      documentDate=validDate(match[1]??match[4],match[2]??match[5],match[3]??match[6]);
+      if(documentDate) break;
+    }
+  }
   const stop=/^(?:Kính gửi|Căn cứ|Thực hiện|Nơi nhận|Chủ trì\s*:|Phối hợp\s*:|Thời hạn\s*:|Sản phẩm\s*:|Ngày\s+\d+\s+tháng|I[. ]|II[. ]|III[. ]|\d{1,2}[.)]\s+)/i;
   let start=-1;
   let subject='';
