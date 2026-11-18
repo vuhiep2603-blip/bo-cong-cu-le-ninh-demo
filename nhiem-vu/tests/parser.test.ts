@@ -1,7 +1,7 @@
 import {expect,test} from 'vitest';
 import {localDay,isLate} from '../src/model';
 import type {Task} from '../src/model';
-import {extractDocumentHeader,ruleAnalyzer} from '../src/parser';
+import {extractDocumentHeader,ruleAnalyzer,reconcileHeaders} from '../src/parser';
 
 test('extracts metadata, fields and traceable separate proposals without external services',async()=>{
  const result=await ruleAnalyzer.analyze(`Số: 12-KH/ĐU
@@ -111,4 +111,15 @@ test('OCR mixed heading preserves issue date on shared number/date row',()=>{
  const result=extractDocumentHeader(ocr);
  expect(result.number).toBe('20/TB-CQTTBCĐ');
  expect(result.documentDate).toBe('2026-10-14');
+});
+
+test('repair partial number 20/TB with same-prefix OCR code, never override unrelated number',()=>{
+ const embedded={number:'20/TB',documentDate:'2026-10-14',subject:'Kết luận của đồng chí Bí thư Tỉnh ủy'};
+ const scanned={number:'20/TB-CQTTBCĐ',documentDate:'2026-10-14',subject:'Kết luận của đồng chí Bí thư Tỉnh ủy, Trưởng Ban Chỉ đạo'};
+ expect(reconcileHeaders(embedded,scanned)).toMatchObject({number:'20/TB-CQTTBCĐ',subject:scanned.subject,conflicts:[]});
+ expect(reconcileHeaders(embedded,{...scanned,number:'34/CT-TTg'})).toMatchObject({number:'20/TB',conflicts:['số, ký hiệu']});
+});
+test('number with spaced suffix and OCR dateline',()=>{
+ const h='Số: 20/TB - CQTTBCĐ\nQuảng Trị, ngày 14 tháng 10 năm 2026';
+ expect(extractDocumentHeader(h)).toMatchObject({number:'20/TB-CQTTBCĐ',documentDate:'2026-10-14'});
 });
