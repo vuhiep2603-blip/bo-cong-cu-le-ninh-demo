@@ -9,10 +9,11 @@ import {readDocument,ruleAnalyzer} from './parser';
 import type {Analysis,Proposal} from './parser';
 import {AuthGate} from './auth-gate';
 import {Header,Notice,message,useAction} from './ui';
+import {Dashboard} from './dashboard';
 import './style.css';
 
 type Page = 'overview'|'assign'|'mine'|'review'|'reports'|'users';
-const menus:Record<Page,string> = {overview:'Tổng quan',assign:'Giao nhiệm vụ',mine:'Nhiệm vụ của tôi',review:'Kiểm tra, nghiệm thu',reports:'Báo cáo',users:'Quản trị cán bộ'};
+const menus:Record<Page,string> = {overview:'Dashboard',assign:'Giao nhiệm vụ',mine:'Nhiệm vụ của tôi',review:'Kiểm tra, nghiệm thu',reports:'Báo cáo',users:'Quản trị cán bộ'};
 const blankProposal:Proposal={title:'',detail:'',lead:'',partners:'',deadline:'',deliverable:'',excerpt:''};
 const dateTime = new Intl.DateTimeFormat('vi-VN',{timeZone:'Asia/Ho_Chi_Minh',dateStyle:'short',timeStyle:'short'});
 const dateLabel = (day:string)=>day.split('-').reverse().join('/');
@@ -41,7 +42,8 @@ function Workspace({profile,onLogout,logoutError}:{profile:Profile;onLogout:()=>
     page==='assign'&&admin?<Assignment users={users} profile={profile}/>:
     page==='users'&&admin?<Directory users={users}/>:
     page==='reports'?<Reports tasks={tasks} users={admin?users:[profile]} admin={admin}/>:
-    <TaskList tasks={page==='mine'?own:page==='review'?review:tasks} users={users} select={setSelected} summary={page==='overview'}/>}
+    page==='overview'?<Dashboard tasks={tasks} users={users} profile={profile} onSelect={setSelected}/>:
+    <TaskList tasks={page==='mine'?own:page==='review'?review:tasks} users={users} select={setSelected} summary={false}/>}
   </main></>;
 }
 function Totals({tasks}:{tasks:Task[]}) {
