@@ -80,7 +80,8 @@ export async function createTask(input:TaskInput, author:string, source?:Source)
     const at = serverTimestamp();
     tx.set(doc(db(),'tasks',id),{
       ...input, status:'ASSIGNED', stage:'DRAFT', progress:0, createdBy:author, createdAt:at, updatedAt:at,
-      delegateUid:'',delegateUntil:null,lastEvent:'',lastResult:'',sourceId:source?id:''
+      delegateUid:'',delegateUntil:null,lastEvent:'',lastResult:'',sourceId:source?id:'',
+      archived:false,archivedAt:null,archivedBy:''
     });
     if (source) tx.set(doc(db(),'sourceDocuments',id),{...source,taskId:id,createdAt:at});
   });
