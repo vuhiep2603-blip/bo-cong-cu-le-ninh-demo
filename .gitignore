@@ -1,0 +1,12 @@
+node_modules/
+test-output/
+release/
+# Never commit user-supplied proprietary fonts or vendor installers.
+*.ttf
+*.TTF
+*.otf
+*.OTF
+*.ttc
+*.TTC
+*.exe
+*.cab

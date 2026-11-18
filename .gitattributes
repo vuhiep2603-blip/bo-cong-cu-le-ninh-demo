@@ -1,0 +1,3 @@
+# Bundled library strings contain significant whitespace; do not rewrite it.
+assets/app.js -whitespace
+assets/app.js.LEGAL.txt -whitespace
