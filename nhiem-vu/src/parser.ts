@@ -1,18 +1,60 @@
 import type {Source} from './model';
 
 export interface Proposal {title:string; detail:string; lead:string; partners:string; deadline:string; deliverable:string; excerpt:string}
-export interface Analysis {source:Source; proposals:Proposal[]}
+export interface Analysis {source:Source; documentDate:string; proposals:Proposal[]}
 export interface TaskAnalyzer {analyze(text:string):Promise<Analysis>}
 
 const assignment = /giao\s|chủ trì|chịu trách nhiệm|có trách nhiệm|đề nghị|yêu cầu/i;
 const prefix = /^\s*(?:\d+(?:\.\d+)*[.)]|[a-z]\)|[-•])\s+/i;
 const metadata = (line:string, label:RegExp) => line.match(label)?.[1]?.trim() ?? '';
 
+// Read only the document header; never confuse a deadline in the body with the issue date.
+function validDate(day:string,month:string,year:string) {
+  const d=Number(day),m=Number(month),y=Number(year);
+  const candidate=new Date(Date.UTC(y,m-1,d));
+  return y>=1900 && y<=2100 && candidate.getUTCFullYear()===y
+    && candidate.getUTCMonth()===m-1 && candidate.getUTCDate()===d
+    ? [year,month.padStart(2,'0'),day.padStart(2,'0')].join('-') : '';
+}
+export function extractDocumentHeader(text:string) {
+  const lines=text.normalize('NFC').replace(/\u00a0/g,' ').split(/\r?\n/)
+    .map(line=>line.replace(/\s+/g,' ').trim()).filter(Boolean);
+  const header=lines.slice(0,35);
+  const joined=header.join('\n');
+  // Document number can follow an agency label on the same line.
+  const number=header.map(line=>{
+    const match=line.match(/(?:^|[\s|])Số\s*[:：]\s*([0-9]{1,6}\s*[-–—/]\s*[A-ZĐ0-9][A-ZĐ0-9./\-–—]*)/i);
+    return match?.[1]?.replace(/\s+/g,'').replace(/[–—]/g,'-')??'';
+  }).find(Boolean)??'';
+  const issue=joined.match(/(?:ngày\s+(\d{1,2})\s+tháng\s+(\d{1,2})\s+năm\s+(\d{4}))|(?:ngày\s+(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4}))/i);
+  const documentDate=issue?validDate(issue[1]??issue[4],issue[2]??issue[5],issue[3]??issue[6]):'';
+  // Vietnamese administrative documents commonly carry the summary after V/v
+  // or an explicit "Trích yếu"; some use the line after the title "CÔNG VĂN".
+  let subject='';
+  for(let i=0;i<header.length;i++) {
+    const line=header[i];
+    const match=line.match(/(?:^|[\s|])(?:V\/v|Về việc|Trích yếu)\s*[:：]?\s+(.+)$/i);
+    if(match?.[1]) {subject=match[1];break;}
+  }
+  if(!subject) {
+    const index=header.findIndex(line=>/^(?:KẾ HOẠCH|THÔNG BÁO|QUYẾT ĐỊNH|BÁO CÁO|TỜ TRÌNH|CÔNG VĂN|CHƯƠNG TRÌNH|KẾT LUẬN)$/i.test(line));
+    if(index>=0) {
+      const parts:string[]=[];
+      for(const line of header.slice(index+1,index+5)) {
+        if(/^(?:Căn cứ|Kính gửi|I[. ]|1[.) ]|Điều\s+1|Nơi nhận|ĐẢNG|ỦY BAN|UBND|Số\s*:)/i.test(line))break;
+        if(/^(?:[-–—]?\s*ngày\s+\d|\d{1,2}\s+tháng\s+\d)/i.test(line))break;
+        parts.push(line);
+      }
+      subject=parts.join(' ');
+    }
+  }
+  return {number:number.slice(0,120),documentDate,subject:subject.replace(/\s+/g,' ').trim().slice(0,300)};
+}
+
 export const ruleAnalyzer:TaskAnalyzer = {
   async analyze(text) {
     const lines = text.normalize('NFC').split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
-    const number = lines.map(l=>metadata(l,/^Số\s*:\s*(.+)$/i)).find(Boolean)??'';
-    const subject = lines.map(l=>metadata(l,/^(?:Trích yếu\s*:\s*|V\/v\s+)(.+)$/i)).find(Boolean)??'';
+    const {number,documentDate,subject}=extractDocumentHeader(text);
     const proposals:Proposal[] = [];
     for (let i=0;i<lines.length;i++) {
       const line=lines[i];
@@ -30,7 +72,7 @@ export const ruleAnalyzer:TaskAnalyzer = {
         deliverable:fields.map(l=>metadata(l,/^(?:sản phẩm|kết quả)\s*:\s*(.+)$/i)).find(Boolean)??''
       });
     }
-    return {source:{number:number.slice(0,120),subject:subject.slice(0,300)},proposals};
+    return {source:{number,subject},documentDate,proposals};
   }
 };
 
