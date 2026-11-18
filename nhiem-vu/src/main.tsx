@@ -70,7 +70,7 @@ function TaskList({tasks,users,select,summary}:{tasks:Task[];users:Profile[];sel
  </section></>;
 }
 function Assignment({users,profile}:{users:Profile[];profile:Profile}) {
- const [analysis,setAnalysis]=useState<Analysis>({source:{number:'',subject:''},proposals:[]});
+ const [analysis,setAnalysis]=useState<Analysis>({source:{number:'',subject:''},documentDate:'',proposals:[]});
  const [draft,setDraft]=useState<Proposal>(blankProposal),[selected,setSelected]=useState<number[]>([]);
  const [activeIndex,setActiveIndex]=useState<number|null>(null);
  const [lead,setLead]=useState(''),[partners,setPartners]=useState<string[]>([]);
@@ -120,11 +120,13 @@ function Assignment({users,profile}:{users:Profile[];profile:Profile}) {
    if(file) void action.run(async()=>{
     const result=await ruleAnalyzer.analyze(await readDocument(file));
     setAnalysis(result);setSelected([]);setActiveIndex(null);setDraft(blankProposal);setLead('');setPartners([]);setAssociate(true);setDone('');
-    if(!result.proposals.length) setDone('Chưa nhận diện được nội dung giao việc. Có thể nhập nhiệm vụ thủ công.');
+    if(!result.proposals.length) setDone('Đã đọc tệp nhưng chưa nhận diện được nội dung giao việc. Hãy đối chiếu số, ngày, trích yếu và nhập nhiệm vụ thủ công nếu cần.');
    });
   }}/></label>
   <div className="fields"><label>Số, ký hiệu<input maxLength={120} value={analysis.source.number} onChange={e=>setAnalysis(a=>({...a,source:{...a.source,number:e.target.value}}))}/></label>
+  <label>Ngày ban hành<input type="date" value={analysis.documentDate} onChange={e=>setAnalysis(a=>({...a,documentDate:e.target.value}))}/></label>
   <label>Trích yếu<input maxLength={300} value={analysis.source.subject} onChange={e=>setAnalysis(a=>({...a,source:{...a.source,subject:e.target.value}}))}/></label></div>
+  <p className="muted">Số, ngày ban hành và trích yếu được nhận diện từ phần đầu văn bản; hãy kiểm tra trước khi giao việc. Ngày ban hành hiện chỉ hiển thị để đối chiếu, chưa lưu trong Firestore.</p>
   <ul className="proposals">{analysis.proposals.map((p,i)=><li key={i}>
    <input type="checkbox" aria-label={'Chọn đề xuất '+(i+1)} checked={selected.includes(i)} onChange={e=>setSelected(x=>e.target.checked?[...x,i]:x.filter(n=>n!==i))}/>
    <button type="button" className="link" onClick={()=>useProposal(p,i)}>{p.title}</button>
