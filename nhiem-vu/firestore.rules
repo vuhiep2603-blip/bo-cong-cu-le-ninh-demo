@@ -67,11 +67,12 @@ service cloud.firestore {
     function newTask(t, id) {
       return t.keys().hasOnly(['title','detail','leadUid','assignees','deadline','deliverable',
           'status','stage','progress','createdAt','updatedAt','createdBy','lastEvent','lastResult',
-          'sourceId','delegateUid','delegateUntil'])
+          'sourceId','delegateUid','delegateUntil','archived','archivedAt','archivedBy'])
         && str(t.title,240) && str(t.detail,8000) && str(t.deliverable,1000) && assigned(t) && date(t.deadline)
         && t.status == 'ASSIGNED' && t.stage == 'DRAFT' && t.progress == 0
         && t.createdBy == request.auth.uid && t.createdAt == request.time && t.updatedAt == request.time
         && t.lastEvent == '' && t.lastResult == '' && t.delegateUid == '' && t.delegateUntil == null
+        && t.archived == false && t.archivedAt == null && t.archivedBy == ''
         && (t.sourceId == '' || (t.sourceId == id && !exists(source(id)) && getAfter(source(id)).data.taskId == id));
     }
     function sequence(id) {
@@ -85,7 +86,7 @@ service cloud.firestore {
       return e.keys().hasOnly(['author','at','kind','text','stage','progress','previousEvent','resultId'])
         && e.author == request.auth.uid && e.at == request.time && str(e.text,8000)
         && stage(e.stage) && e.progress is int && e.progress >= 0 && e.progress <= 100
-        && ((group == 'updates' && e.kind in ['ACCEPT','PROGRESS','ADMIN_SETTINGS'])
+        && ((group == 'updates' && e.kind in ['ACCEPT','PROGRESS','ADMIN_SETTINGS','ARCHIVE','RESTORE'])
           || (group == 'results' && e.kind == 'SUBMIT')
           || (group == 'reviews' && e.kind in ['APPROVE','RETURN']));
     }
@@ -96,7 +97,7 @@ service cloud.firestore {
         && e.stage == t.stage && e.progress == t.progress;
     }
     function worker(before, t, id, keys) {
-      return active() && request.auth.uid in before.assignees
+      return active() && before.get('archived',false) == false && request.auth.uid in before.assignees
         && keys.hasOnly(['status','stage','progress','updatedAt','lastEvent','lastResult'])
         && ((before.status == 'ASSIGNED' && t.status == 'WORKING' && t.lastResult == before.lastResult
             && t.stage == before.stage && t.progress == before.progress && backed(id,'updates','ACCEPT',t))
@@ -113,20 +114,29 @@ service cloud.firestore {
         && (admin() || result.author != request.auth.uid);
     }
     function review(before,t,id,keys) {
-      return (admin() || delegate(before)) && before.status == 'SUBMITTED'
+      return before.get('archived',false) == false && (admin() || delegate(before)) && before.status == 'SUBMITTED'
         && keys.hasOnly(['status','lastEvent','updatedAt','progress'])
         && before.lastResult.matches('results_[A-Za-z0-9]+') && validResult(id,before)
         && ((t.status == 'COMPLETE' && t.progress == 100 && backed(id,'reviews','APPROVE',t))
           || (t.status == 'REVISION' && t.progress == before.progress && backed(id,'reviews','RETURN',t)));
     }
     function settings(before,t,id,keys) {
-      return admin() && before.status != 'COMPLETE' && date(t.deadline)
+      return admin() && before.get('archived',false) == false && before.status != 'COMPLETE' && date(t.deadline)
         && keys.hasOnly(['deadline','delegateUid','delegateUntil','lastEvent','updatedAt'])
         && ((t.delegateUid == '' && t.delegateUntil == null)
           || (t.delegateUntil is timestamp && (t.delegateUntil > request.time ||
             (t.delegateUid == before.delegateUid && t.delegateUntil == before.delegateUntil))
             && member(t.delegateUid) && get(user(t.delegateUid)).data.role == 'DEPUTY'))
         && backed(id,'updates','ADMIN_SETTINGS',t);
+    }
+    function archive(before,t,id,keys) {
+      return admin() && keys.hasOnly(['archived','archivedAt','archivedBy','updatedAt','lastEvent'])
+        && ((before.get('archived',false) == false && t.archived == true
+          && t.archivedAt == request.time && t.archivedBy == request.auth.uid
+          && backed(id,'updates','ARCHIVE',t))
+          || (before.get('archived',false) == true && t.archived == false
+          && t.archivedAt == null && t.archivedBy == ''
+          && backed(id,'updates','RESTORE',t)));
     }
     match /tasks/{id} {
       allow get, list: if readTask(resource.data);
@@ -138,7 +148,7 @@ service cloud.firestore {
         let keys = t.diff(b).affectedKeys();
         return t.keys().hasAll(b.keys()) && status(t.status) && t.updatedAt == request.time
           && str(t.lastEvent,100) && t.lastEvent != b.lastEvent
-          && (worker(b,t,id,keys) || review(b,t,id,keys) || settings(b,t,id,keys));
+          && (worker(b,t,id,keys) || review(b,t,id,keys) || settings(b,t,id,keys) || archive(b,t,id,keys));
       }
       match /{group}/{eventId} {
         allow get, list: if group in ['updates','results','reviews'] && readTask(get(task(id)).data);
