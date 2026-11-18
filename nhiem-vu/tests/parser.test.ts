@@ -107,7 +107,7 @@ Kính gửi: Bộ Giáo dục và Đào tạo`;
  expect(result.subject).toBe('sắp xếp cơ sở giáo dục mầm non, phổ thông, thường xuyên, giáo dục nghề nghiệp công lập cấp tỉnh, cấp xã');
 });
 test('OCR mixed heading preserves issue date on shared number/date row',()=>{
- const ocr='Số: 20/TB-CQTTBCĐ Quảng Trị, ngày 14 tháng 10 năm 2026\\nTHÔNG BÁO';
+ const ocr='Số: 20/TB-CQTTBCĐ Quảng Trị, ngày 14 tháng 10 năm 2026\nTHÔNG BÁO';
  const result=extractDocumentHeader(ocr);
  expect(result.number).toBe('20/TB-CQTTBCĐ');
  expect(result.documentDate).toBe('2026-10-14');
