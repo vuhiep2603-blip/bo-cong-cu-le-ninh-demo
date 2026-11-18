@@ -123,6 +123,8 @@ function Assignment({users,profile}:{users:Profile[];profile:Profile}) {
     const extracted=await readDocument(file);
     const result=await ruleAnalyzer.analyze(extracted.text);
     let conflictNotice='';
+    const scanNumberOnly=Boolean(extracted.ocrHeader?.number && !result.source.number);
+    if(scanNumberOnly) conflictNotice='Số, ký hiệu do OCR đọc từ ảnh, CHƯA XÁC MINH. Các chữ số in mờ có thể bị nhầm (ví dụ 31 thành 34); bắt buộc đối chiếu trực tiếp trang đầu trước khi giao nhiệm vụ.';
     if(extracted.ocrHeader) {
       const merged=reconcileHeaders({...result.source,documentDate:result.documentDate},extracted.ocrHeader);
       result.source.number=merged.number;
