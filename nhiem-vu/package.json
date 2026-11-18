@@ -1,0 +1,35 @@
+{
+  "name": "vpdu-nhiem-vu",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "vitest run tests/parser.test.ts",
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-vpdu \"vitest run tests/rules.test.ts --testTimeout 30000\"",
+    "test:browser": "playwright test"
+  },
+  "type": "module",
+  "dependencies": {
+    "firebase": "^13.4.0",
+    "mammoth": "^1.13.0",
+    "pdfjs-dist": "^6.5.438",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^6.0.0",
+    "@playwright/test": "^1.65.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "fflate": "^0.8.3",
+    "firebase-tools": "^15.36.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
+  },
+  "private": true,
+  "overrides": {
+    "@grpc/grpc-js": "1.14.7"
+  }
+}

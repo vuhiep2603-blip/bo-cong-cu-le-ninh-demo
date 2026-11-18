@@ -1,0 +1,161 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function user(uid) {
+      return /databases/$(database)/documents/users/$(uid);
+    }
+    function task(id) {
+      return /databases/$(database)/documents/tasks/$(id);
+    }
+    function counter(year) {
+      return /databases/$(database)/documents/systemSettings/$(year);
+    }
+    function eventPath(id, group, eventId) {
+      return /databases/$(database)/documents/tasks/$(id)/$(group)/$(eventId);
+    }
+    function source(id) {
+      return /databases/$(database)/documents/sourceDocuments/$(id);
+    }
+    function active() {
+      return request.auth != null && request.auth.token.email_verified == true
+        && request.auth.token.firebase.sign_in_provider == 'google.com'
+        && get(user(request.auth.uid)).data.active == true
+        && get(user(request.auth.uid)).data.email == request.auth.token.email;
+    }
+    function admin() { return active() && get(user(request.auth.uid)).data.role == 'ADMIN'; }
+    function deputy() { return active() && get(user(request.auth.uid)).data.role == 'DEPUTY'; }
+    function readTask(t) {
+      return active() && (admin() || request.auth.uid in t.assignees
+        || (deputy() && t.delegateUid == request.auth.uid));
+    }
+    function delegate(t) {
+      return deputy() && t.delegateUid == request.auth.uid && request.time < t.delegateUntil;
+    }
+    function str(s, n) { return s is string && s.size() > 0 && s.size() <= n && s.matches('(?s).*[^\\s].*'); }
+    function date(d) { return d is string && d.matches('[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])'); }
+    function stage(s) { return s in ['DRAFT', 'PRESENTED', 'ISSUED']; }
+    function status(s) { return s in ['ASSIGNED', 'WORKING', 'SUBMITTED', 'REVISION', 'COMPLETE']; }
+    function member(uid) { return uid is string && get(user(uid)).data.active == true; }
+    function assigned(t) {
+      let a = t.assignees;
+      return a is list && a.size() >= 1 && a.size() <= 5 && a.toSet().size() == a.size()
+        && a[0] == t.leadUid && member(a[0]) && (a.size() < 2 || member(a[1]))
+        && (a.size() < 3 || member(a[2])) && (a.size() < 4 || member(a[3]))
+        && (a.size() < 5 || member(a[4]));
+    }
+    function account(u) {
+      return u.keys().hasOnly(['code','name','email','role','active','phone'])
+        && u.code in ['VP01','VP02','VP03','VP04','VP05'] && str(u.name,120)
+        && u.email is string && u.email.size() <= 254 && u.email.matches('[^ @]+@[^ @]+')
+        && u.active is bool && u.phone is string && u.phone.size() <= 30
+        && ((u.code == 'VP01' && u.role == 'ADMIN') || (u.code == 'VP02' && u.role == 'DEPUTY')
+          || (u.code in ['VP03','VP04','VP05'] && u.role == 'SPECIALIST'));
+    }
+    match /users/{uid} {
+      allow get: if admin() || (request.auth != null && request.auth.uid == uid
+        && request.auth.token.email_verified == true && request.auth.token.firebase.sign_in_provider == 'google.com'
+        && resource.data.email == request.auth.token.email);
+      allow list: if admin();
+      allow create: if admin() && account(request.resource.data) && request.resource.data.role != 'ADMIN';
+      allow update: if admin() && account(request.resource.data) && resource.data.role != 'ADMIN'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','phone','active']);
+    }
+    function newTask(t, id) {
+      return t.keys().hasOnly(['title','detail','leadUid','assignees','deadline','deliverable',
+          'status','stage','progress','createdAt','updatedAt','createdBy','lastEvent','lastResult',
+          'sourceId','delegateUid','delegateUntil'])
+        && str(t.title,240) && str(t.detail,8000) && str(t.deliverable,1000) && assigned(t) && date(t.deadline)
+        && t.status == 'ASSIGNED' && t.stage == 'DRAFT' && t.progress == 0
+        && t.createdBy == request.auth.uid && t.createdAt == request.time && t.updatedAt == request.time
+        && t.lastEvent == '' && t.lastResult == '' && t.delegateUid == '' && t.delegateUntil == null
+        && (t.sourceId == '' || (t.sourceId == id && !exists(source(id)) && getAfter(source(id)).data.taskId == id));
+    }
+    function sequence(id) {
+      let parts = id.split('-');
+      let c = counter(parts[2]);
+      return id.matches('NV-VP-[0-9]{4}-[0-9]{4}') && getAfter(c).data.taskId == id
+        && getAfter(c).data.number == int(parts[3])
+        && (!exists(c) || get(c).data.taskId != id);
+    }
+    function eventData(e, group) {
+      return e.keys().hasOnly(['author','at','kind','text','stage','progress'])
+        && e.author == request.auth.uid && e.at == request.time && str(e.text,8000)
+        && stage(e.stage) && e.progress is int && e.progress >= 0 && e.progress <= 100
+        && ((group == 'updates' && e.kind in ['ACCEPT','PROGRESS','ADMIN_SETTINGS'])
+          || (group == 'results' && e.kind == 'SUBMIT')
+          || (group == 'reviews' && e.kind in ['APPROVE','RETURN']));
+    }
+    function backed(id, group, kind, t) {
+      let path = eventPath(id, group, t.lastEvent);
+      let e = getAfter(path).data;
+      return t.lastEvent.matches(group + '_[A-Za-z0-9]+') && !exists(path) && eventData(e, group) && e.kind == kind
+        && e.stage == t.stage && e.progress == t.progress;
+    }
+    function worker(before, t, id, keys) {
+      return active() && request.auth.uid in before.assignees
+        && keys.hasOnly(['status','stage','progress','updatedAt','lastEvent','lastResult'])
+        && ((before.status == 'ASSIGNED' && t.status == 'WORKING' && t.lastResult == before.lastResult
+            && t.stage == before.stage && t.progress == before.progress && backed(id,'updates','ACCEPT',t))
+          || (before.status in ['WORKING','REVISION'] && t.status == before.status
+            && t.lastResult == before.lastResult && backed(id,'updates','PROGRESS',t))
+          || (before.status in ['WORKING','REVISION'] && t.status == 'SUBMITTED'
+            && t.lastResult == t.lastEvent && backed(id,'results','SUBMIT',t)));
+    }
+    function review(before,t,id,keys) {
+      return (admin() || delegate(before)) && before.status == 'SUBMITTED'
+        && keys.hasOnly(['status','lastEvent','updatedAt','progress'])
+        && str(before.lastResult,100) && exists(eventPath(id,'results',before.lastResult))
+        && ((t.status == 'COMPLETE' && t.progress == 100 && backed(id,'reviews','APPROVE',t))
+          || (t.status == 'REVISION' && t.progress == before.progress && backed(id,'reviews','RETURN',t)));
+    }
+    function settings(before,t,id,keys) {
+      return admin() && before.status != 'COMPLETE' && date(t.deadline)
+        && keys.hasOnly(['deadline','delegateUid','delegateUntil','lastEvent','updatedAt'])
+        && ((t.delegateUid == '' && t.delegateUntil == null)
+          || (t.delegateUntil is timestamp && (t.delegateUntil > request.time ||
+            (t.delegateUid == before.delegateUid && t.delegateUntil == before.delegateUntil))
+            && member(t.delegateUid) && get(user(t.delegateUid)).data.role == 'DEPUTY'))
+        && backed(id,'updates','ADMIN_SETTINGS',t);
+    }
+    match /tasks/{id} {
+      allow get, list: if readTask(resource.data);
+      allow create: if admin() && newTask(request.resource.data,id) && sequence(id);
+      allow update: if updateTask(id);
+      function updateTask(id) {
+        let b = resource.data;
+        let t = request.resource.data;
+        let keys = t.diff(b).affectedKeys();
+        return t.keys().hasAll(b.keys()) && status(t.status) && t.updatedAt == request.time
+          && str(t.lastEvent,100) && t.lastEvent != b.lastEvent
+          && (worker(b,t,id,keys) || review(b,t,id,keys) || settings(b,t,id,keys));
+      }
+      match /{group}/{eventId} {
+        allow get, list: if group in ['updates','results','reviews'] && readTask(get(task(id)).data);
+        allow create: if active() && eventId.matches(group + '_[A-Za-z0-9]+') && eventData(request.resource.data,group)
+          && get(task(id)).data.lastEvent != eventId && getAfter(task(id)).data.lastEvent == eventId
+          && getAfter(task(id)).data.updatedAt == request.time;
+      }
+    }
+    match /systemSettings/{year} {
+      allow get: if admin();
+      allow create, update: if admin() && validCounter(year);
+      function validCounter(year) {
+        let d = request.resource.data;
+        return year.matches('[0-9]{4}') && d.keys().hasOnly(['number','taskId'])
+          && d.number is int && d.number >= 1 && d.number <= 9999
+          && d.number == (resource == null ? 1 : resource.data.number + 1)
+          && d.taskId is string && d.taskId.matches('NV-VP-' + year + '-[0-9]{4}')
+          && int(d.taskId.split('-')[3]) == d.number
+          && !exists(task(d.taskId)) && getAfter(task(d.taskId)).data.createdBy == request.auth.uid;
+      }
+    }
+    match /sourceDocuments/{id} {
+      allow get, list: if admin();
+      allow create: if admin() && request.resource.data.keys().hasOnly(['taskId','number','subject','createdAt'])
+        && request.resource.data.taskId == id && request.resource.data.createdAt == request.time
+        && request.resource.data.number is string && request.resource.data.number.size() <= 120
+        && request.resource.data.subject is string && request.resource.data.subject.size() <= 300
+        && !exists(task(id)) && getAfter(task(id)).data.sourceId == id;
+    }
+  }
+}

@@ -1,0 +1,14 @@
+<!doctype html><meta charset="utf-8">
+<script type="module">
+import {GoogleAuthProvider, signInWithCredential} from 'firebase/auth';
+import {auth} from '../src/backend';
+const id = new URLSearchParams(location.search).get('id');
+try {
+  if (!import.meta.env.DEV || (import.meta.env.VITE_USE_EMULATORS !== 'true' || import.meta.env.VITE_FIREBASE_PROJECT_ID !== 'demo-vpdu') || !id?.startsWith('qa-')) throw Error('Emulator only');
+  const email=id+'@example.invalid';
+  const result=await signInWithCredential(auth,GoogleAuthProvider.credential(JSON.stringify({sub:id,email,email_verified:true})));
+  document.body.textContent=result.user.uid;
+} catch(error) {
+  document.body.textContent=String(error);
+}
+</script>
