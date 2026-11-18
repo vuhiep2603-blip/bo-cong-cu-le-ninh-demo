@@ -17,3 +17,4 @@ nhiem-vu/dist/
 nhiem-vu/*-debug.log
 nhiem-vu/playwright-report/
 nhiem-vu/test-results/
+!nhiem-vu/.env.demo

@@ -13,10 +13,13 @@ const config = {
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
-const app = Object.values(config).every(Boolean) ? initializeApp(config) : null;
+const requestedEmulator = import.meta.env.VITE_USE_EMULATORS === 'true' || import.meta.env.MODE === 'demo';
+const emulatorMode = import.meta.env.DEV && requestedEmulator && config.projectId === 'demo-vpdu';
+const usableConfig = Object.values(config).every(Boolean) && (requestedEmulator ? emulatorMode : config.projectId !== 'demo-vpdu');
+const app = usableConfig ? initializeApp(config) : null;
 export const auth = app && getAuth(app);
 const database = app && getFirestore(app);
-if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATORS === 'true' && auth && database && config.projectId === 'demo-vpdu') {
+if (emulatorMode && auth && database) {
   connectAuthEmulator(auth,'http://127.0.0.1:9099',{disableWarnings:true});
   connectFirestoreEmulator(database,'127.0.0.1',8080);
 }

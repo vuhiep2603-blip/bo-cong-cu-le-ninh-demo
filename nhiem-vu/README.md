@@ -22,16 +22,27 @@ npx playwright install chromium
 npm run test:browser
 ```
 
-Playwright mở Vite tại loopback, dùng Google credential giả lập do Auth Emulator cấp và ghi năm hồ sơ giả lập vào Firestore Emulator. Đặt `CHROMIUM_PATH` nếu dùng Chromium cài sẵn, hoặc `VPDU_PREVIEW_DIR` để xuất ảnh xem trước. Để dùng thử thủ công, chạy Vite với project `demo-vpdu`, `VITE_USE_EMULATORS=true` và các giá trị giả lập trong `playwright.config.ts`. Trình nhập DOCX/PDF chạy trong tab, kể cả PDF worker.
+Playwright dùng danh tính Google giả lập với Auth Emulator và kiểm tra Firestore Rules. Đặt `CHROMIUM_PATH` để dùng Chromium cài sẵn hoặc `VPDU_PREVIEW_DIR` để xuất ảnh. Bộ Playwright xóa dữ liệu Firestore của project **giả lập** trước khi chạy.
 
-## Thiết lập Firebase Spark
+### Xem thử với năm cán bộ và nhiệm vụ giả lập
 
-1. Tạo project trong Firebase Console và giữ gói **Spark**. Tạo ứng dụng Web để lấy Web config. Email, điện thoại và Firebase UID của cán bộ chỉ nhập trong Firebase, tuyệt đối không đưa vào Git hoặc biến build. Cấu hình Web Firebase là thông tin định danh công khai của ứng dụng. Quyền dữ liệu phụ thuộc vào Rules, không phụ thuộc vào việc giấu Web API key.
-2. Trong **Authentication → Sign-in method**, bật Google. Thêm domain GitHub Pages chính xác, ví dụ `vuhiep2603-blip.github.io`, vào **Authorized domains**. Chọn email hỗ trợ phù hợp. Để thử thật trên máy, thêm `localhost` khi cần và dùng một project thử riêng.
-3. Tạo **Cloud Firestore Standard**, chọn vị trí theo chính sách của cơ quan, dùng database mặc định và chế độ production. Đồng bộ Rules của mô-đun trước khi cấp quyền. Lệnh sau chỉ dùng khi người có thẩm quyền chấp thuận cập nhật Rules trong project:
+Sau khi chạy Auth và Firestore Emulator theo lệnh trên, mở terminal khác trong `nhiem-vu/`:
+
+```sh
+npm run demo:seed
+npm run dev:demo
+```
+
+Mở `http://127.0.0.1:4180/tests/demo.html` và chọn VP01 để xem tổng quan, giao nhiệm vụ và nghiệm thu. Chọn VP03 để xem danh sách cá nhân và cập nhật công việc. VP02 có một nhiệm vụ được ủy quyền, VP04 là người phối hợp, VP05 bị khóa. Có thêm một danh tính chưa được cấp quyền để kiểm tra màn hình từ chối. Dữ liệu mẫu chỉ ghi vào Emulator trên loopback. Chạy lại lệnh nạp sẽ giữ dữ liệu của phiên Emulator đã được nạp mẫu. Trang chọn tài khoản thử nghiệm nằm ngoài bản build.
+
+## Kết nối Firebase Spark với project hiện có
+
+1. Dùng project **`vpduln-quanlynhiemvu`** đã có trên gói **Spark** và Firestore **`(default)`**. Trong **Project settings → General → Your apps**, chọn ứng dụng Web hiện có hoặc đăng ký một ứng dụng Web nếu chưa có, rồi lấy Web config. Email, điện thoại và Firebase UID của cán bộ chỉ nhập trong Firebase, tuyệt đối không đưa vào Git hoặc biến build. Cấu hình Web Firebase là thông tin định danh công khai của ứng dụng. Quyền dữ liệu phụ thuộc vào Rules, không phụ thuộc vào việc giấu Web API key.
+2. Project đã bật Google và đã có domain `vuhiep2603-blip.github.io` trong **Authorized domains** theo thông tin bàn giao. Giữ cấu hình đó. Dùng Emulator để thử trên máy mà không thêm domain vào project thật.
+3. Project hiện chặn toàn bộ đọc/ghi Firestore. Giữ nguyên trong giai đoạn nghiệm thu. Khi đã được phê duyệt, người quản trị project mới xem xét cập nhật Rules cho database mặc định bằng lệnh:
    ```sh
    npx firebase login
-   npx firebase deploy --only firestore:rules --project PROJECT_ID
+   npx firebase deploy --only firestore:rules --project vpduln-quanlynhiemvu
    ```
 4. Đăng nhập Google lần đầu để Firebase Authentication tạo bản ghi. Tài khoản chưa được cấp quyền sẽ thấy thông báo từ chối. Người quản trị project kiểm chứng danh tính và lấy UID/email trong **Authentication → Users**, rồi tạo tài liệu **`users/{UID}`** trong Firebase Console với các trường:
    - `code`: string, `VP01`.
@@ -42,8 +53,8 @@ Playwright mở Vite tại loopback, dùng Google credential giả lập do Auth
    - `phone`: string, để trống nếu không cần.
 
    Chỉ người có quyền quản trị Firebase Console mới bootstrap hoặc chỉnh tài khoản ADMIN. Quyền quản trị project cần giới hạn và có xác thực đa yếu tố theo chính sách tổ chức.
-5. Cấp bốn tài khoản còn lại trong màn hình **Quản trị cán bộ** sau khi xác minh UID/email. `VP02` là DEPUTY. `VP03`, `VP04` và `VP05` là SPECIALIST. Số điện thoại thuộc danh mục cán bộ. Đăng nhập dùng Google, không dùng số điện thoại.
-6. Để chạy frontend với Firebase thật, sao chép `.env.example` thành `.env.local`, điền Web config, rồi `npm run dev`. Không ghi mật khẩu, service account hoặc token quản trị vào biến `VITE_*`, vì Vite công khai chúng trong bundle.
+5. Cấp bốn tài khoản còn lại trong màn hình **Quản trị cán bộ** sau khi xác minh UID/email. `VP02` là DEPUTY. `VP03`, `VP04` và `VP05` là SPECIALIST. Số điện thoại thuộc danh mục cán bộ. Đăng nhập dùng Google.
+6. Để chuẩn bị kết nối thật, sao chép `.env.example` thành `.env.local`. Project ID và auth domain mặc định đã điền. Lấy `apiKey` và `appId` từ Web config trong Firebase Console và đối chiếu `authDomain`. Google Sign-In có thể xác thực danh tính, nhưng ứng dụng sẽ từ chối mở dữ liệu khi Rules còn chặn toàn bộ. Chế độ demo chỉ kết nối project `demo-vpdu` trong máy phát triển. Không ghi mật khẩu, service account hoặc token quản trị vào biến `VITE_*`, vì Vite công khai chúng trong bundle.
 
 ## Chuẩn bị GitHub Pages
 

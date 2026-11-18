@@ -7,7 +7,11 @@ try {
   if (!import.meta.env.DEV || (import.meta.env.VITE_USE_EMULATORS !== 'true' || import.meta.env.VITE_FIREBASE_PROJECT_ID !== 'demo-vpdu') || !id?.startsWith('qa-')) throw Error('Emulator only');
   const email=id+'@example.invalid';
   const result=await signInWithCredential(auth,GoogleAuthProvider.credential(JSON.stringify({sub:id,email,email_verified:true})));
-  document.body.textContent=result.user.uid;
+  if (new URLSearchParams(location.search).get('open') === '1') {
+    location.replace('../');
+  } else {
+    document.body.textContent=result.user.uid;
+  }
 } catch(error) {
   document.body.textContent=String(error);
 }

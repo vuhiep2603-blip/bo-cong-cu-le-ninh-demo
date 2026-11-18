@@ -40,9 +40,9 @@ function App() {
  useEffect(()=>auth ? onAuthStateChanged(auth,user=>setUid(user?.uid??null),e=>setError(message(e))) : undefined,[]);
  useEffect(()=>{
   setProfile(undefined);setError('');
-  if (uid) return watchProfile(uid,setProfile,e=>{
+  if (uid) return watchProfile(uid,setProfile,()=>{
    setProfile(null);
-   setError('Tài khoản chưa được cấp quyền hoặc email Google không khớp danh mục.');
+   setError('Không đọc được hồ sơ cán bộ. Tài khoản có thể chưa được cấp quyền hoặc hệ thống chưa mở quyền truy cập.');
   });
  },[uid]);
  if (uid && profile?.uid===uid && profile.active) return <Workspace key={uid} profile={profile} onLogout={()=>void action.run(logout)} logoutError={action.error}/>;
