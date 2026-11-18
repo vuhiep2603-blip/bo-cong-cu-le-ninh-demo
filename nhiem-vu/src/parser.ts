@@ -24,9 +24,17 @@ export function extractDocumentHeader(text:string) {
   const boundary=lines.findIndex((line,index)=>index>2 && /^(?:Kính gửi|Căn cứ|Thực hiện|Nơi nhận)\s*[:：]?/i.test(line));
   const header=lines.slice(0,Math.min(55,boundary<0?55:boundary));
   const headerText=header.join('\n');
-  // Handle "Số: 20/TB-...", "Số 363 -CV/TU" and mixed PDF overlay spacing.
-  const numberMatch=headerText.match(/(?:^|[^\p{L}])Số\s*[:：]?\s*([0-9]{1,6})\s*([-–—/])\s*([A-ZĐ][A-ZĐ0-9./\-–—]*)/iu);
-  const number=numberMatch?(numberMatch[1]+(numberMatch[2]==='/'?'/':'-')+numberMatch[3]).replace(/[–—]/g,'-'):'';
+  // Number and designation often occupy separate PDF glyphs/cells:
+  // "Số: 20/TB - CQTTBCĐ", "Số 363 -CV/TU", or split after "TB-".
+  const numberRows=header.slice(0,14).join('\n');
+  const numberMatch=numberRows.match(/(?:^|[^\p{L}])Số\s*[:：]?\s*(\d{1,6})\s*([-–—/])\s*([A-ZĐa-zđ][\p{L}\p{N}./\-–—\s]{0,40})/iu);
+  let number='';
+  if(numberMatch) {
+    let tail=numberMatch[3].split(/\s{2,}|\n|(?=\s+(?:Quảng|Hà Nội|Lệ Ninh|ĐẢNG|CỘNG HÒA|ngày)\b)/iu)[0];
+    tail=tail.replace(/\s*[-–—]\s*/g,'-').replace(/\s*\/\s*/g,'/').replace(/\s+/g,'');
+    // Never accept an incomplete code ending in a separator.
+    number=(numberMatch[1]+(numberMatch[2]==='/'?'/':'-')+tail).replace(/[–—]/g,'-');
+  }
   // Datelines may be wrapped into separate visual rows or contain spaced digits.
   // Restrict candidate dates to the administrative heading, not the task body.
   const datePattern=/ngày\s*(\d{1,2})\s*tháng\s*(\d{1,2})\s*năm\s*(\d{4})|ngày\s*(\d{1,2})\s*[\/.\-]\s*(\d{1,2})\s*[\/.\-]\s*(\d{4})/iu;
