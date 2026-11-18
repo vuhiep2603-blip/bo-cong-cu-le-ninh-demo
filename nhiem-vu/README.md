@@ -54,7 +54,14 @@ Mở `http://127.0.0.1:4180/tests/demo.html` và chọn VP01 để xem tổng qu
 
    Chỉ người có quyền quản trị Firebase Console mới bootstrap hoặc chỉnh tài khoản ADMIN. Quyền quản trị project cần giới hạn và có xác thực đa yếu tố theo chính sách tổ chức.
 5. Cấp bốn tài khoản còn lại trong màn hình **Quản trị cán bộ** sau khi xác minh UID/email. `VP02` là DEPUTY. `VP03`, `VP04` và `VP05` là SPECIALIST. Số điện thoại thuộc danh mục cán bộ. Đăng nhập dùng Google.
-6. Để chuẩn bị kết nối thật, sao chép `.env.example` thành `.env.local`. Project ID và auth domain mặc định đã điền. Lấy `apiKey` và `appId` từ Web config trong Firebase Console và đối chiếu `authDomain`. Google Sign-In có thể xác thực danh tính, nhưng ứng dụng sẽ từ chối mở dữ liệu khi Rules còn chặn toàn bộ. Chế độ demo chỉ kết nối project `demo-vpdu` trong máy phát triển. Không ghi mật khẩu, service account hoặc token quản trị vào biến `VITE_*`, vì Vite công khai chúng trong bundle.
+6. Để chuẩn bị kết nối thật, sao chép `.env.example` thành `.env.local`. Project ID và auth domain mặc định đã điền. Điền `apiKey` và `appId` đã đăng ký vào `.env.local` và đối chiếu `authDomain` với Web config trong Firebase Console. Google Sign-In có thể xác thực danh tính, nhưng ứng dụng sẽ từ chối mở dữ liệu khi Rules còn chặn toàn bộ. Chế độ demo chỉ kết nối project `demo-vpdu` trong máy phát triển. Không ghi mật khẩu, service account hoặc token quản trị vào biến `VITE_*`, vì Vite công khai chúng trong bundle.
+
+### Kiểm tra kết nối thật trước khi nghiệm thu
+
+- Dùng đúng `apiKey` và `appId` từ Web App trong Console. Giữ `.env.local` ngoài Git và xác nhận bằng `git check-ignore .env.local` trong `nhiem-vu/`. Các giá trị `VITE_FIREBASE_*` được đóng gói vào JavaScript công khai như thiết kế của Firebase Web SDK.
+- Chạy `npm run build` với cấu hình thật. Vite từ chối build khi chọn mode demo, project Emulator hoặc cờ `VITE_USE_EMULATORS=true`. Trang chọn danh tính, tệp nạp dữ liệu và kiểm thử Emulator nằm ngoài bản build.
+- Kiểm tra kết nối chỉ đọc có thể xác nhận Firebase Auth trả về domain được phép, OAuth handler phản hồi và Firestore từ chối GET không xác thực khi Rules còn đóng. Các kiểm tra này không xác nhận đăng nhập thành công bằng tài khoản Google thật.
+- Khi được phép nghiệm thu OAuth trên domain đã đăng ký, dùng tài khoản Google thử nghiệm và giữ Rules hiện hành. Kiểm tra đăng nhập, thông báo từ chối truy cập hồ sơ và đăng xuất. Không chạy `demo:seed` hoặc ghi dữ liệu lên project thật.
 
 ## Chuẩn bị GitHub Pages
 

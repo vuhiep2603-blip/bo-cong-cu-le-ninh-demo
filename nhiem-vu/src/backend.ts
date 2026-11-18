@@ -1,4 +1,4 @@
-import {initializeApp} from 'firebase/app';
+import {FirebaseError, initializeApp} from 'firebase/app';
 import {connectAuthEmulator, getAuth, GoogleAuthProvider, signInWithPopup, signOut} from 'firebase/auth';
 import {collection, connectFirestoreEmulator, doc, getFirestore, onSnapshot, or, query, serverTimestamp, setDoc, updateDoc, where} from 'firebase/firestore';
 import {localDay} from './model';
@@ -29,7 +29,24 @@ function db() {
 }
 export async function login() {
   if (!auth) throw new Error('Firebase chưa được cấu hình.');
-  await signInWithPopup(auth, new GoogleAuthProvider());
+  try {
+    await signInWithPopup(auth, new GoogleAuthProvider());
+  } catch (error) {
+    if (!(error instanceof FirebaseError)) throw error;
+    switch (error.code) {
+      case 'auth/popup-closed-by-user':
+      case 'auth/cancelled-popup-request':
+        return;
+      case 'auth/popup-blocked':
+        throw Error('Trình duyệt đã chặn cửa sổ đăng nhập Google. Hãy cho phép cửa sổ bật lên và thử lại.');
+      case 'auth/unauthorized-domain':
+        throw Error('Địa chỉ website này chưa được cấp quyền đăng nhập Google trong Firebase.');
+      case 'auth/network-request-failed':
+        throw Error('Không kết nối được dịch vụ đăng nhập. Hãy kiểm tra kết nối mạng và thử lại.');
+      default:
+        throw Error('Chưa hoàn tất đăng nhập Google ('+error.code+').');
+    }
+  }
 }
 export async function logout() {
   if (auth) await signOut(auth);
