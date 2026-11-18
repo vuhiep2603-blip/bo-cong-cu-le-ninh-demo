@@ -37,7 +37,7 @@ export function extractDocumentHeader(text:string) {
   }
   // Datelines may be wrapped into separate visual rows or contain spaced digits.
   // Restrict candidate dates to the administrative heading, not the task body.
-  const datePattern=/ngày\\s*([0-9OoIl]{1,2})\\s*tháng\\s*([0-9OoIl]{1,2})\\s*năm\\s*(\\d{4})|ngày\\s*([0-9OoIl]{1,2})\\s*[\\/.\\-]\\s*([0-9OoIl]{1,2})\\s*[\\/.\\-]\\s*(\\d{4})/iu;
+  const datePattern=/ngày\s*([0-9OoIl]{1,2})\s*tháng\s*([0-9OoIl]{1,2})\s*năm\s*(\d{4})|ngày\s*([0-9OoIl]{1,2})\s*[\/.\-]\s*([0-9OoIl]{1,2})\s*[\/.\-]\s*(\d{4})/iu;
   let documentDate='';
   const shortHeader=header.slice(0,Math.min(header.length,18));
   for(let i=0;i<shortHeader.length;i++) {
