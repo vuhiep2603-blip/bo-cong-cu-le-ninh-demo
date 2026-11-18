@@ -1,7 +1,7 @@
 import {expect,test} from 'vitest';
 import {localDay,isLate} from '../src/model';
 import type {Task} from '../src/model';
-import {ruleAnalyzer} from '../src/parser';
+import {extractDocumentHeader,ruleAnalyzer} from '../src/parser';
 
 test('extracts metadata, fields and traceable separate proposals without external services',async()=>{
  const result=await ruleAnalyzer.analyze(`Số: 12-KH/ĐU
@@ -29,4 +29,27 @@ test('overdue uses Hanoi calendar and excludes completed tasks',()=>{
  expect(day).toBe('2027-01-01');
  expect(isLate({status:'WORKING',deadline:'2026-12-31'} as Task,day)).toBe(true);
  expect(isLate({status:'COMPLETE',deadline:'2026-12-31'} as Task,day)).toBe(false);
+});
+
+test('reads Vietnamese issue number, date and subject from document heading',async()=>{
+ const text=`ĐẢNG BỘ TỈNH QUẢNG TRỊ
+ĐẢNG ỦY XÃ LỆ NINH
+Số: 123-CV/ĐU
+ĐẢNG CỘNG SẢN VIỆT NAM
+Lệ Ninh, ngày 18 tháng 11 năm 2026
+V/v đôn đốc thực hiện nhiệm vụ năm 2026
+Kính gửi: Các cơ quan tham mưu
+1. Giao Văn phòng tổng hợp báo cáo.`;
+ const header=extractDocumentHeader(text);
+ expect(header).toEqual({number:'123-CV/ĐU',documentDate:'2026-11-18',
+  subject:'đôn đốc thực hiện nhiệm vụ năm 2026'});
+ const analyzed=await ruleAnalyzer.analyze(text);
+ expect(analyzed.source).toEqual({number:header.number,subject:header.subject});
+ expect(analyzed.documentDate).toBe('2026-11-18');
+});
+test('accepts compact issue dates, avoids mistaking task deadlines for issuance',()=>{
+ expect(extractDocumentHeader('Số: 15/TB-ĐU\nLệ Ninh, ngày 05/12/2026\nTrích yếu: Kết luận cuộc họp'))
+  .toEqual({number:'15/TB-ĐU',documentDate:'2026-12-05',subject:'Kết luận cuộc họp'});
+ expect(extractDocumentHeader('Số: 22-KH/ĐU\nGiao việc trước ngày 20/12/2026'))
+  .toMatchObject({number:'22-KH/ĐU',documentDate:''});
 });
