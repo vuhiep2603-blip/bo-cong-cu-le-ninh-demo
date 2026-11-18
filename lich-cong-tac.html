@@ -147,6 +147,15 @@
 <div class="section">THIẾT LẬP XUẤT VĂN BẢN</div>
 <div class="field"><label for="note">Ghi chú cuối lịch</label><textarea id="note" rows="2" lang="vi" oninput="setNote(this.value)"></textarea></div>
 <label class="checkbox"><input type="checkbox" id="weekendRest" checked onchange="state.weekend_rest=this.checked;changed()"> Mặc định ghi “Nghỉ” cho thứ Bảy, Chủ nhật khi không có hoạt động</label>
+<details id="timesFontSettings" style="margin:12px 0;border:1px solid #dac5be;border-radius:9px;padding:10px;background:#fff8f3;color:#69414a">
+<summary style="cursor:pointer;font-weight:700">Font Times New Roman cho PDF Lịch</summary>
+<p class="gridFoot">Chọn đủ 4 font Times New Roman hợp pháp (Regular, Bold, Italic, Bold Italic). Kiểm tra tên bên trong font; chỉ đổi tên tệp không hợp lệ. Font chỉ dùng tại trình duyệt, không tải lên GitHub hoặc máy chủ.</p>
+<label for="timesFontFiles" class="gridFoot">Chọn cùng lúc 4 tệp TTF/OTF từ máy tính</label>
+<input id="timesFontFiles" type="file" accept=".ttf,.otf" multiple style="max-width:100%;margin:8px 0">
+<label class="checkbox"><input id="rememberTimesFonts" type="checkbox" checked> Ghi nhớ bộ font trong trình duyệt này</label>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0"><button id="replaceTimesFonts" class="btn outline" type="button">Thay bộ font</button><button id="removeTimesFonts" class="btn outline" type="button">Xóa bộ font đã lưu</button></div>
+<p id="timesFontStatus" class="gridFoot" role="status" aria-live="polite">Đang kiểm tra bộ font đã lưu…</p>
+</details>
 <label class="checkbox"><input type="checkbox" id="includeStamp"> Chèn dấu treo khi xuất PDF</label>
 
 <p class="gridFoot">Dữ liệu chỉ lưu trong trình duyệt này. Xóa dữ liệu website hoặc đổi trình duyệt có thể mất lịch. Hãy sao lưu ra tệp JSON định kỳ.</p><div class="backupTools"><button class="btn outline" onclick="backupData()">↓ Sao lưu dữ liệu</button><button class="btn outline" onclick="document.getElementById('restoreFile').click()">↑ Khôi phục từ tệp</button><input id="restoreFile" type="file" accept=".json,application/json" hidden onchange="restoreData(this)"></div>
@@ -156,7 +165,7 @@
 <article class="paper" id="paper"><div class="paperHelp">Đây là bản xem trước để hiệu chỉnh; PDF/Word sẽ được dàn trang theo kích thước A4 khi xuất.</div><div class="mast"><div>ĐẢNG UỶ XÃ LỆ NINH<br>VĂN PHÒNG<br><span class="stampAnchor" id="stampAnchor">*</span></div><div>LỊCH CÔNG TÁC TUẦN<br>CỦA BAN THƯỜNG VỤ ĐẢNG UỶ<br><span class="range" id="previewRange"></span><br><span style="font-weight:normal">-----</span></div></div><table class="thetable"><tbody id="previewRows"></tbody></table><p class="footnote"><span class="edit" contenteditable="plaintext-only" id="previewNote" data-note="true" spellcheck="false"></span></p></article></div></section>
 </div></main>
 <div class="alert" id="toast"><button onclick="hideToast()">×</button><span id="toastText"></span></div>
-<script src="./assets/app.js?v=4.3.3-final-20261117"></script>
+<script src="./assets/app.js?v=4.3.3-tnr-20261117"></script>
 <script>
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -344,4 +353,5 @@ $('paper').addEventListener('keydown',event=>{if(event.target.closest('[data-fie
 function loadSample(){if(!confirm('Nạp dữ liệu giả lập sẽ thay nội dung tuần đang chọn. Tiếp tục?'))return;
  state.items=[{id:'demo_am',day:0,end_day:1,session:'Sáng',people:['Đ/c BT','Đ/c PBT TT'],person:'Đ/c BT, đ/c PBT TT',content:'Trao đổi nội dung minh họa, không phải lịch thực tế.',time:'08:00',location:'Phòng họp minh họa',auto_office:false},{id:'demo_pm',day:2,end_day:2,session:'Chiều',people:['Đ/c CN UBKT'],person:'Đ/c CN UBKT',content:'Thực hành tạo lịch công tác (dữ liệu giả lập).',time:'14:00',location:'Địa điểm minh họa',auto_office:false}];state.include_stamp=false;changed();loadWeeks();toast('Đã nạp dữ liệu giả lập vào tuần đang chọn.','ok')}
 render();loadWeeks();loadWeek(state.start);
+LeNinh.mountTimesFontControls();
 </script></body></html>
