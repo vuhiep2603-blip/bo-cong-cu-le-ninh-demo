@@ -18,3 +18,5 @@ nhiem-vu/*-debug.log
 nhiem-vu/playwright-report/
 nhiem-vu/test-results/
 !nhiem-vu/.env.demo
+
+nhiem-vu/dist-auth-qa/

@@ -1,14 +1,14 @@
 import {StrictMode,useEffect,useState} from 'react';
-import type {FormEvent,ReactNode} from 'react';
+import type {FormEvent} from 'react';
 import {createRoot} from 'react-dom/client';
-import {onAuthStateChanged} from 'firebase/auth';
 import {Timestamp} from 'firebase/firestore';
-import {auth,login,logout,watchProfile,watchUsers,watchTasks,watchHistory,createTask,changeTask,addUser,editUser} from './backend';
+import {watchUsers,watchTasks,watchHistory,createTask,changeTask,addUser,editUser} from './backend';
 import {actions,isLate,roles,stages,statuses} from './model';
 import type {Action,Event,Profile,Role,Stage,Task} from './model';
 import {readDocument,ruleAnalyzer} from './parser';
 import type {Analysis,Proposal} from './parser';
-import logo from '../../assets/logo.png';
+import {AuthGate} from './auth-gate';
+import {Header,Notice,message,useAction} from './ui';
 import './style.css';
 
 type Page = 'overview'|'assign'|'mine'|'review'|'reports'|'users';
@@ -16,45 +16,6 @@ const menus:Record<Page,string> = {overview:'Tổng quan',assign:'Giao nhiệm v
 const blankProposal:Proposal={title:'',detail:'',lead:'',partners:'',deadline:'',deliverable:'',excerpt:''};
 const dateTime = new Intl.DateTimeFormat('vi-VN',{timeZone:'Asia/Ho_Chi_Minh',dateStyle:'short',timeStyle:'short'});
 const dateLabel = (day:string)=>day.split('-').reverse().join('/');
-const message = (error:unknown)=>error instanceof Error ? error.message : 'Thao tác chưa hoàn tất.';
-function Header({children}:{children?:ReactNode}) {
- return <header><div className="brand">
-  <img src={logo} alt="" width="54" height="54"/>
-  <div><div className="org">VĂN PHÒNG ĐẢNG ỦY XÃ LỆ NINH</div><h1>Quản lý nhiệm vụ tham mưu</h1></div>
- </div><div className="header-tools"><a href="../">Bộ công cụ</a>{children}</div></header>;
-}
-function Notice({text}:{text:string}) { return text ? <p className="error" role="alert">{text}</p> : null; }
-function useAction() {
- const [busy,setBusy]=useState(false),[error,setError]=useState('');
- async function run(operation:()=>Promise<unknown>) {
-  setBusy(true);setError('');
-  try { await operation(); } catch(e) { setError(message(e)); } finally {setBusy(false);}
- }
- return {busy,error,run};
-}
-function App() {
- const [uid,setUid]=useState<string|null|undefined>(auth?undefined:null);
- const [profile,setProfile]=useState<Profile|null|undefined>();
- const [error,setError]=useState('');
- const action=useAction();
- useEffect(()=>auth ? onAuthStateChanged(auth,user=>setUid(user?.uid??null),e=>setError(message(e))) : undefined,[]);
- useEffect(()=>{
-  setProfile(undefined);setError('');
-  if (uid) return watchProfile(uid,setProfile,()=>{
-   setProfile(null);
-   setError('Không đọc được hồ sơ cán bộ. Tài khoản có thể chưa được cấp quyền hoặc hệ thống chưa mở quyền truy cập.');
-  });
- },[uid]);
- if (uid && profile?.uid===uid && profile.active) return <Workspace key={uid} profile={profile} onLogout={()=>void action.run(logout)} logoutError={action.error}/>;
- const waiting = uid===undefined || (uid && profile===undefined);
- return <><Header>{uid&&<button onClick={()=>void action.run(logout)} disabled={action.busy}>Đăng xuất</button>}</Header>
-  <main className="login"><section className="panel"><h2>Đăng nhập</h2>
-   <p>{waiting?'Đang kiểm tra tài khoản…':profile&&!profile.active?'Tài khoản đang bị khóa. Liên hệ Chánh Văn phòng.':uid?'Tài khoản chưa được cấp quyền. Liên hệ Chánh Văn phòng.':'Sử dụng tài khoản Google đã được Văn phòng cấp quyền.'}</p>
-   {!auth&&<p className="info">Môi trường này chưa cấu hình Firebase. Xem README để thiết lập bản thử nghiệm.</p>}
-   <Notice text={error||action.error}/>
-   {!uid&&<button className="primary" disabled={!auth||action.busy||Boolean(waiting)} onClick={()=>void action.run(login)}>Đăng nhập bằng Google</button>}
-  </section></main></>;
-}
 function Workspace({profile,onLogout,logoutError}:{profile:Profile;onLogout:()=>void;logoutError:string}) {
  const [page,setPage]=useState<Page>('overview'),[tasks,setTasks]=useState<Task[]>([]),[users,setUsers]=useState<Profile[]>([]);
  const [error,setError]=useState(''),[selected,setSelected]=useState('');
@@ -307,4 +268,4 @@ function Directory({users}:{users:Profile[]}) {
   </>}<button className="primary" disabled={action.busy}>Lưu cán bộ</button></form>
  </section></div>;
 }
-createRoot(document.getElementById('root')!).render(<StrictMode><App/></StrictMode>);
+createRoot(document.getElementById('root')!).render(<StrictMode><AuthGate renderWorkspace={session=><Workspace key={session.profile.uid} {...session}/>}/></StrictMode>);

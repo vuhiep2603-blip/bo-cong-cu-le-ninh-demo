@@ -144,7 +144,8 @@ test('Vietnamese screens, local DOCX/PDF, assignment to review and responsive ta
 });
 
 
-test('authenticated account remains unprovisioned with Firestore deny-all rules',async({page})=>{
+for (const authOnly of [false,true]) test(`deny-all leaves account unprovisioned (${authOnly?'auth QA':'full app'})`,async({page})=>{
+ if (authOnly) await useAuthQaEntry(page);
  const options = {projectId:'demo-vpdu',firestore:{host:'127.0.0.1',port:8080}};
  const currentRules = await readFile('firestore.rules','utf8');
  const restricted = await initializeTestEnvironment({
@@ -170,4 +171,18 @@ test('authenticated account remains unprovisioned with Firestore deny-all rules'
   const restored=await initializeTestEnvironment({...options,firestore:{...options.firestore,rules:currentRules}});
   await restored.cleanup();
  }
+});
+
+async function useAuthQaEntry(page:Page) {
+ await page.route(/\/src\/main\.tsx(?:\?|$)/, route=>route.fulfill({
+  contentType:'application/javascript',body:"import '/src/auth-qa.tsx';"
+ }));
+}
+test('auth-only entry never opens a workspace, even for an authorized admin',async({page})=>{
+ await useAuthQaEntry(page);
+ await signIn(page,'qa-admin',true);
+ await expect(page.getByText(/Bản kiểm thử chỉ hỗ trợ nghiệm thu đăng nhập và đăng xuất/)).toBeVisible();
+ await expect(page.getByRole('navigation')).toHaveCount(0);
+ await page.getByRole('button',{name:'Đăng xuất'}).click();
+ await expect(page.getByRole('button',{name:'Đăng nhập bằng Google'})).toBeEnabled();
 });

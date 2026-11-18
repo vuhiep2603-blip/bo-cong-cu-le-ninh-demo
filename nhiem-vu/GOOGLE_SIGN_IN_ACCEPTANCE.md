@@ -9,18 +9,21 @@ Dùng Firebase Web App của project Spark `vpduln-quanlynhiemvu` với auth dom
 ## Chuẩn bị gói tĩnh
 
 1. Checkout commit của PR đã được duyệt để thử. Trong `nhiem-vu/`, nạp bốn biến từ Web config đã đăng ký. Dùng `.env.local` đã bị Git bỏ qua hoặc biến cấu hình của job build. Không đưa mật khẩu, service account, dữ liệu cán bộ hoặc thông tin phiên đăng nhập vào GitHub.
-2. Chạy `npm ci`, `npm run build`, rồi từ gốc kho chạy `node nhiem-vu/package-pages.mjs <thư_mục_mới_ngoài_checkout>`. Gói đầu ra chỉ gồm các trang tĩnh hiện có, tài nguyên và bundle Vite tại `nhiem-vu/`. `.env.local`, mã kiểm thử và trang đăng nhập giả lập không nằm trong gói. Các giá trị Web config công khai đi vào bundle khi build.
-3. Mở gói qua HTTP cục bộ dưới đường dẫn con và kiểm tra trang chủ, nút Google của `/nhiem-vu/` và đường dẫn trở lại Bộ công cụ. So sánh byte của `giay-moi.html`, `lich-cong-tac.html` và `assets/` với bản đang dùng trên `main`. Chạy kiểm thử hồi quy của Bộ công cụ trước khi xuất bản.
+2. Chạy `npm ci` rồi `npm run build:auth-qa` trong `nhiem-vu/`. Từ gốc kho, chạy `node nhiem-vu/package-pages.mjs <thư_mục_mới_ngoài_checkout> --auth-qa`. Build QA chỉ nhận cấu hình Web App của project đã nêu và từ chối Emulator.
+3. Gói gồm `.nojekyll` và `nhiem-vu/` chứa HTML, CSS, logo và JavaScript giao diện/Firebase Web SDK. Gói này không có màn hình nghiệp vụ kể cả khi một hồ sơ có quyền, cũng không có tệp nguồn, dữ liệu, tài khoản mô phỏng, trang demo, trình đọc tài liệu, Giấy mời hoặc Lịch công tác. Web config công khai đi vào bundle tại thời điểm build.
+4. Phục vụ gói thử qua HTTP cục bộ dưới đường dẫn con và xác nhận nút Google hoạt động ở mức khởi tạo SDK. Hai công cụ cũ vẫn được phục vụ từ kho chính và được kiểm thử hồi quy riêng.
 
-## Phương án xuất bản đã tách khỏi website đang dùng
+## Phương án xuất bản
 
-Sau khi được chấp thuận, dùng một repository **thử công khai** riêng thuộc cùng chủ sở hữu `vuhiep2603-blip`, chẳng hạn `bo-cong-cu-le-ninh-auth-qa`. Xuất bản gói tĩnh đã kiểm tra qua Pages của kho thử. URL dự kiến là `https://vuhiep2603-blip.github.io/bo-cong-cu-le-ninh-auth-qa/nhiem-vu/`. Firebase Authorized Domains kiểm tra tên máy chủ, nên đường dẫn khác vẫn dùng domain đã có `vuhiep2603-blip.github.io`. Giữ nguyên nguồn Pages từ `main` của kho chính. Phương án này dùng GitHub Pages công khai và Spark, không cần backend riêng.
+1. Sau khi được chấp thuận riêng, tạo repository công khai `vuhiep2603-blip/bo-cong-cu-le-ninh-auth-qa`. Đưa **nội dung đã build** của gói QA vào nhánh `main` của kho thử, giữ `.nojekyll` tại gốc và `nhiem-vu/index.html` tại đúng vị trí. Ghi lại SHA của nguồn build để nghiệm thu.
+2. Tại **Settings → Pages** của **kho thử**, chọn **Deploy from a branch**, nhánh `main`, thư mục `/(root)`. Kiểm tra build Pages và HTTPS của **kho thử**. Dự kiến URL là `https://vuhiep2603-blip.github.io/bo-cong-cu-le-ninh-auth-qa/nhiem-vu/`.
+3. Giữ nguyên Pages của kho chính, không thay domain và không cập nhật Rules. Firebase Authorized Domains kiểm tra hostname `vuhiep2603-blip.github.io`, đã được phép. Phương án dùng GitHub Pages công khai và Spark.
 
-URL kho thử chỉ là đề xuất. Chưa tạo kho, đổi cấu hình Pages hoặc xuất bản. GitHub Pages dùng chung origin giữa các repository cùng tài khoản. Khi mở các trang Giấy mời hoặc Lịch từ kho thử, dùng hồ sơ trình duyệt sạch để tránh đọc hoặc sửa dữ liệu cục bộ của website đang dùng.
+Hai website **cùng hostname và cùng origin**, dù nằm ở repository và đường dẫn khác nhau. Trước khi mở URL thử, tạo **hồ sơ trình duyệt riêng**, dùng hồ sơ đó suốt lượt nghiệm thu và không mở công cụ chính trong hồ sơ thử. Điều này tránh dùng chung phiên Firebase Auth, cookie và bộ nhớ website với hồ sơ vận hành. URL thử hiện là dự kiến, chưa tạo repository hay xuất bản.
 
 ## Checklist người quản trị
 
-1. Mở URL HTTPS của kho thử trong trình duyệt sạch. Xác nhận có nút **Đăng nhập bằng Google**, logo và đường quay lại Bộ công cụ.
+1. Mở URL HTTPS của kho thử trong trình duyệt sạch. Xác nhận có nút **Đăng nhập bằng Google** và tiêu đề nghiệm thu.
 2. Bấm nút Google, chọn tài khoản thử đã được chấp thuận tại hộp thoại Google. Nếu popup bị chặn, cho phép popup cho domain Pages. Nếu báo domain chưa được phép, kiểm tra hostname hiện tại và Authorized Domains mà không thay đổi cấu hình trong lượt nghiệm thu.
 3. Sau khi quay về webapp, xác nhận có nút **Đăng xuất**, thông báo **Tài khoản chưa được cấp quyền** và không có màn hình nghiệp vụ. Với Rules khóa toàn bộ, client không thể phân biệt hồ sơ thiếu với hồ sơ đã có nhưng bị chặn. Nếu cần xác minh hồ sơ thử chưa tồn tại, chỉ kiểm tra trong Firebase Console với quyền xem sẵn có.
 4. Bấm **Đăng xuất**. Xác nhận nút Google xuất hiện trở lại, nút Đăng xuất biến mất và tải lại trang không khôi phục phiên webapp. Đăng xuất webapp không đăng xuất tài khoản khỏi dịch vụ Google.
@@ -30,5 +33,5 @@ URL kho thử chỉ là đề xuất. Chưa tạo kho, đổi cấu hình Pages 
 
 - Firebase Auth Project Config và OAuth handler phản hồi HTTP 200 trong kiểm tra chỉ đọc; domain Pages có trong danh sách được phép. GET Firestore không xác thực trả HTTP 403 `PERMISSION_DENIED`.
 - Trình duyệt đã thử gói build tĩnh dưới đường dẫn con kiểu Pages. GitHub Pages của kho chính đang lấy từ `main` và đường dẫn công khai `/nhiem-vu/` chưa có, trả HTTP 404.
-- Playwright với Auth/Firestore Emulator kiểm tra tài khoản chưa cấp quyền, khóa tài khoản và đăng xuất. Ca Rules khóa toàn bộ xác nhận tài khoản đã xác thực vẫn bị từ chối, không sinh hồ sơ và không khôi phục phiên sau tải lại.
+- Playwright với Auth/Firestore Emulator kiểm tra tài khoản chưa cấp quyền, khóa tài khoản và đăng xuất. Ca Rules khóa toàn bộ trên cả hai giao diện xác nhận tài khoản đã xác thực vẫn bị từ chối, không sinh hồ sơ và không khôi phục phiên sau tải lại. Ca bổ sung xác nhận kể cả ADMIN đang hoạt động cũng không truy cập màn hình nghiệp vụ từ gói QA.
 - Đăng nhập Google thật và đăng xuất trên GitHub Pages **chưa kiểm chứng**. Việc xác nhận endpoint, domain và bản build không thay thế lượt xác thực có tương tác của người nghiệm thu.
