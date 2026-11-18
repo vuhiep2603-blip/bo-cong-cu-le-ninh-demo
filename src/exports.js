@@ -1,5 +1,4 @@
 import {createTimesPdf} from './tnr-pdf.js';
-import {resources as requireTimesFonts} from './tnr-fonts.js';
 import {loadOriginalStamp} from './stamp.js';
 import {unzipSync,zipSync,strFromU8,strToU8} from 'fflate';
 import {Document,Packer,Paragraph,TextRun,Table,TableRow,TableCell,AlignmentType,VerticalAlign,WidthType,BorderStyle} from 'docx';
@@ -58,7 +57,7 @@ const run=(text,opts={})=>new TextRun({text,font:'Times New Roman',size:26,...op
 const para=(text,opts={})=>new Paragraph({children:[run(text,opts.run)],spacing:{after:0,line:300},...opts,run:undefined});
 export async function scheduleWord(raw){
   const d=normalize(raw),noBorder={style:BorderStyle.NONE,size:0,color:'FFFFFF'};
-  const header=new Table({width:{size:100,type:WidthType.PERCENTAGE},columnWidths:[twip(7.7),twip(9.45)],borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[new TableCell({children:[para('ĐẢNG UỶ XÃ LỆ NINH',{alignment:AlignmentType.CENTER,run:{bold:true}}),para('VĂN PHÒNG',{alignment:AlignmentType.CENTER,run:{bold:true}}),para('*',{alignment:AlignmentType.CENTER})]}),new TableCell({children:[para('LỊCH CÔNG TÁC TUẦN',{alignment:AlignmentType.CENTER,run:{bold:true}}),para('CỦA BAN THƯỜNG VỤ ĐẢNG UỶ',{alignment:AlignmentType.CENTER,run:{bold:true}}),para(`(Từ ngày ${vi(d.start)} đến ${vi(d.end)})`,{alignment:AlignmentType.CENTER,run:{italics:true}}),para('-----',{alignment:AlignmentType.CENTER})]})]})]});
+  const header=new Table({width:{size:100,type:WidthType.PERCENTAGE},columnWidths:[twip(7.7),twip(9.45)],borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[new TableCell({children:[para('ĐẢNG UỶ XÃ LỆ NINH',{alignment:AlignmentType.CENTER,run:{bold:false}}),para('VĂN PHÒNG',{alignment:AlignmentType.CENTER,run:{bold:true}}),para('*',{alignment:AlignmentType.CENTER})]}),new TableCell({children:[para('LỊCH CÔNG TÁC TUẦN',{alignment:AlignmentType.CENTER,run:{bold:true}}),para('CỦA BAN THƯỜNG VỤ ĐẢNG UỶ',{alignment:AlignmentType.CENTER,run:{bold:true}}),para(`(Từ ngày ${vi(d.start)} đến ${vi(d.end)})`,{alignment:AlignmentType.CENTER,run:{italics:true}}),para('-----',{alignment:AlignmentType.CENTER})]})]})]});
   const rows=DAYS.map((day,i)=>{
     const am=sessionItems(d,i,'Sáng'),pm=sessionItems(d,i,'Chiều'),rest=d.weekend_rest&&i>=5&&!am.length&&!pm.length;
     const children=rest?[para('Nghỉ',{alignment:AlignmentType.CENTER,run:{italics:true}})]:[['Buổi sáng:',am],['Buổi chiều:',pm]].flatMap(([label,items])=>[para(label,{run:{bold:true}}),...items.map(x=>para(activityText(x)))]);
@@ -75,8 +74,6 @@ async function preparePDF(){return fontsReady??=(async()=>{
 })().catch(e=>{fontsReady=null;throw e})}
 async function pdf(content,background){await preparePDF();return new Promise((resolve,reject)=>{try{pdfMake.createPdf({pageSize:'A4',pageMargins:[46,46,43,48],defaultStyle:{font:'LiberationSerif',fontSize:12.8,lineHeight:1.15},background,info:{title:'Tài liệu minh họa – Văn phòng Đảng ủy xã Lệ Ninh',author:'Le Ninh Demo'},content}).getBlob(resolve)}catch(e){reject(e)}})}
 export async function schedulePDF(raw,options={}){
-  // Fail before loading a seal or writing a PDF if the four real fonts are absent.
-  await requireTimesFonts(JSON.stringify(raw));
   const stamp=options.includeStamp===true?await loadOriginalStamp():null;
   const d=normalize(raw);
   const body=DAYS.map((day,i)=>{
@@ -84,7 +81,7 @@ export async function schedulePDF(raw,options={}){
     const stack=d.weekend_rest&&i>=5&&!am.length&&!pm.length?[{text:'Nghỉ',italics:true,alignment:'center'}]:[['Buổi sáng:',am],['Buổi chiều:',pm]].flatMap(([text,items])=>[{text,bold:true},...items.map(x=>({text:activityText(x)}))]);
     return [{stack:[{text:day,bold:true},{text:`(${vi(iso(add(date(d.start),i))).slice(0,5)})`,bold:true,italics:true}],alignment:'center'},{stack}];
   });
-  return createTimesPdf([{columns:[{width:203,text:'ĐẢNG UỶ XÃ LỆ NINH\nVĂN PHÒNG\n*',alignment:'center',bold:true},{width:'*',stack:[{text:'LỊCH CÔNG TÁC TUẦN\nCỦA BAN THƯỜNG VỤ ĐẢNG UỶ',bold:true},{text:`(Từ ngày ${vi(d.start)} đến ${vi(d.end)})`,italics:true},{text:'-----'}],alignment:'center'}],margin:[0,0,0,18]},{table:{widths:[80,'*'],body},layout:{paddingTop:()=>5,paddingBottom:()=>5,paddingLeft:()=>6,paddingRight:()=>6}},{text:d.note,italics:true,fontSize:12,alignment:'center',margin:[0,13,0,0]}],stamp?((page)=>page===1?{image:stamp.image,width:stamp.width,height:stamp.height,absolutePosition:{...stamp.absolutePosition}}:null):undefined,JSON.stringify(d));
+  return createTimesPdf([{columns:[{width:203,text:[{text:'ĐẢNG UỶ XÃ LỆ NINH',bold:false},{text:'\nVĂN PHÒNG\n*',bold:true}],alignment:'center'},{width:'*',stack:[{text:'LỊCH CÔNG TÁC TUẦN\nCỦA BAN THƯỜNG VỤ ĐẢNG UỶ',bold:true},{text:`(Từ ngày ${vi(d.start)} đến ${vi(d.end)})`,italics:true},{text:'-----'}],alignment:'center'}],margin:[0,0,0,18]},{table:{widths:[80,'*'],body},layout:{paddingTop:()=>5,paddingBottom:()=>5,paddingLeft:()=>6,paddingRight:()=>6}},{text:d.note,italics:true,fontSize:12,alignment:'center',margin:[0,13,0,0]}],stamp?((page)=>page===1?{image:stamp.image,width:stamp.width,height:stamp.height,absolutePosition:{...stamp.absolutePosition}}:null):undefined,JSON.stringify(d));
 }
 export async function invitationPDF(form){
   const d=invitationData(form);

@@ -7,7 +7,7 @@ root=Path(__file__).resolve().parents[1]
 out=root/'test-output'
 expected={'TimesNewRomanPSMT','TimesNewRomanPS-BoldMT','TimesNewRomanPS-ItalicMT','TimesNewRomanPS-BoldItalicMT'}
 results=[]
-for name in ['schedule-times.pdf','schedule-times-stamped.pdf','schedule-times-long.pdf','times-four-styles.pdf','schedule-times-session-only.pdf','schedule-times-storage-disabled.pdf']:
+for name in ['schedule-times.pdf','schedule-times-stamped.pdf','schedule-times-long.pdf','times-four-styles.pdf','schedule-times-reloaded.pdf']:
  doc=fitz.open(out/name)
  fonts={re.sub(r'^[A-Z]{6}\+','',f[3]) for p in doc for f in p.get_fonts()}
  assert fonts==expected,(name,fonts)
@@ -16,6 +16,15 @@ for name in ['schedule-times.pdf','schedule-times-stamped.pdf','schedule-times-l
   for f in p.get_fonts():assert doc.extract_font(f[0])[3],(name,f)
   for x0,y0,x1,y1,*_ in p.get_text('blocks'):
    assert x0>=45 and x1<=553 and y0>=44 and y1<=795,(name,p.number,(x0,y0,x1,y1))
+ if name!='times-four-styles.pdf':
+  expected_header={
+   'ĐẢNG UỶ XÃ LỆ NINH':False, 'VĂN PHÒNG':True,
+   '*':True, 'LỊCH CÔNG TÁC TUẦN':True, 'CỦA BAN THƯỜNG VỤ ĐẢNG UỶ':True,
+  }
+  spans={span['text'].strip():span for block in doc[0].get_text('dict', flags=fitz.TEXTFLAGS_TEXT)['blocks']
+         for line in block['lines'] for span in line['spans'] if span['bbox'][1]<90}
+  for heading,bold in expected_header.items():
+   assert bool(spans[heading]['flags'] & fitz.TEXT_FONT_BOLD)==bold,(name,heading,spans[heading])
  text='\n'.join(p.get_text() for p in doc);assert '\ufffd' not in text
  if name!='times-four-styles.pdf':
   assert 'LỊCH CÔNG TÁC TUẦN' in text and 'Chủ nhật' in text and 'điều chỉnh phù hợp' in text
@@ -37,7 +46,11 @@ for name in ['schedule-times.pdf','schedule-times-stamped.pdf','schedule-times-l
  results.append({'file':name,'pages':len(doc),'fonts':sorted(fonts),'all_embedded_subset_unicode':True,'a4':True,'text_bounds_ok':True,'stamp_first_page_only':stamped})
  print('PASS',name,len(doc),'pages; four embedded real TNR styles; Unicode/bounds/stamp OK')
 inv=fitz.open(out/'invitation-unchanged.pdf');assert all('Liberation' in f[3] for p in inv for f in p.get_fonts())
-word=Document(out/'schedule-word.docx');assert len(word.tables[-1].rows)==7
+for name in ['schedule-word.docx','schedule-word-no-font.docx']:
+ word=Document(out/name);assert len(word.tables[-1].rows)==7
+ headings=[(p.text,bool(p.runs[0].bold)) for cell in word.tables[0].rows[0].cells
+           for p in cell.paragraphs if p.text in expected_header]
+ assert dict(headings)=={**expected_header,'*':False},headings
 with ZipFile(out/'schedule-word.docx') as z:assert not any(n.startswith('word/media/') for n in z.namelist())
 backup=json.loads((out/'schedule-backup.json').read_text());assert backup['format']=='le-ninh-local-backup' and backup['version']==1
 # Frozen baseline digests avoid depending on an unpublished historical commit.
