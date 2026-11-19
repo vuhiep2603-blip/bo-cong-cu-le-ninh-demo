@@ -1,7 +1,7 @@
 import {expect,test} from 'vitest';
 import {localDay,isLate} from '../src/model';
 import type {Task} from '../src/model';
-import {extractDocumentHeader,ruleAnalyzer,reconcileHeaders} from '../src/parser';
+import {extractDocumentHeader,ruleAnalyzer,reconcileHeaders,isSparsePdfPage} from '../src/parser';
 import {reconstructPageLines} from '../src/pdf-layout';
 import {extractTaskProposals} from '../src/task-extraction';
 
@@ -202,4 +202,10 @@ trường học để thực hiện chương trình mới`;
  expect(p.length).toBeGreaterThanOrEqual(3);
  expect(p.some(x=>x.title.includes('Xây dựng bộ chỉ số'))).toBe(true);
  expect(p.some(x=>x.title.includes('Hoàn thiện các tiêu chí'))).toBe(true);
+});
+
+test('identify image-only PDF pages despite embedded whitespace and ignore normal text pages',()=>{
+ expect(isSparsePdfPage('   \n \t    ')).toBe(true);
+ expect(isSparsePdfPage(('Nội dung văn bản đầy đủ có lớp chữ tiếng Việt ').repeat(6))).toBe(false);
+ expect(isSparsePdfPage('Ký số điện tử\nNgười ký: VP\n')).toBe(true);
 });
