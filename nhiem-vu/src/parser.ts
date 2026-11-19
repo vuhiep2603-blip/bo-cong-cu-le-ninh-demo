@@ -77,7 +77,18 @@ export function extractDocumentHeader(text:string) {
       subject=parts.join(' ');
     }
   }
-  return {number:number.slice(0,120),documentDate,subject:subject.replace(/\s+/g,' ').trim().slice(0,300)};
+  return {number:number.slice(0,120),documentDate,subject:subject.split(/-{3,}/)[0].replace(/\s+/g,' ').trim().slice(0,300)};
+}
+
+// Detect PDF character-level spacing such as "v ề t ă ng c ườ ng".
+export function hasFragmentedVietnameseWords(value:string) {
+  const words=value.split(/\\s+/).filter(Boolean);
+  let singleRuns=0;
+  for(let i=0;i<words.length-2;i++){
+    const group=words.slice(i,i+3);
+    if(group.every(w=>[...w.replace(/[^\\p{L}]/gu,'')].length===1))singleRuns++;
+  }
+  return singleRuns>=1 || words.length>=8 && words.filter(w=>[...w].length===1).length/words.length>0.25;
 }
 
 export function reconcileHeaders(
@@ -94,9 +105,11 @@ export function reconcileHeaders(
   if(embedded.documentDate&&scanned.documentDate&&embedded.documentDate!==scanned.documentDate) conflicts.push('ngày ban hành');
   if(embedded.subject&&scanned.subject&&embedded.subject!==scanned.subject
     && !scanned.subject.startsWith(embedded.subject)&&!embedded.subject.startsWith(scanned.subject)) conflicts.push('trích yếu');
+  const garbled=hasFragmentedVietnameseWords(embedded.subject);
+  const clearer=garbled && Boolean(scanned.subject) && !hasFragmentedVietnameseWords(scanned.subject);
   return {
     number, documentDate:embedded.documentDate||scanned.documentDate,
-    subject:(!embedded.subject || (scanned.subject.startsWith(embedded.subject)&&scanned.subject.length>embedded.subject.length))
+    subject:(clearer || !embedded.subject || (scanned.subject.startsWith(embedded.subject)&&scanned.subject.length>embedded.subject.length))
       ? scanned.subject : embedded.subject,
     conflicts
   };
@@ -159,7 +172,7 @@ export async function readDocument(file:File,onProgress?:(label:string)=>void) {
       }
       const text=pages.join('\n');
       const header=extractDocumentHeader(text);
-      if(header.number && header.documentDate && header.subject) return {text,notice:scanNote||undefined} satisfies ReadResult;
+      if(header.number && header.documentDate && header.subject && !hasFragmentedVietnameseWords(header.subject)) return {text,notice:scanNote||undefined} satisfies ReadResult;
       try {
         const first=await pdf.getPage(1);
         const ocr=scannedText
