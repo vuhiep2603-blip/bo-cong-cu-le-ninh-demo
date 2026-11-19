@@ -1,5 +1,5 @@
 import type {Source} from './model';
-import {recognizePdfHeader} from './ocr';
+import {recognizePdfHeader,recognizePdfPages} from './ocr';
 import {extractTaskProposals} from './task-extraction';
 import {reconstructPageLines} from './pdf-layout';
 
@@ -111,7 +111,7 @@ export const ruleAnalyzer:TaskAnalyzer = {
   }
 };
 
-export async function readDocument(file:File) {
+export async function readDocument(file:File,onProgress?:(label:string)=>void) {
   if (file.size>15*1024*1024) throw Error('Tệp vượt quá 15 MB.');
   if (/\.docx$/i.test(file.name)) {
     const mammoth=await import('mammoth/mammoth.browser');
@@ -133,12 +133,38 @@ export async function readDocument(file:File) {
           .map(item=>({str:item.str,x:item.transform[4],y:item.transform[5],width:item.width,height:item.height}));
         pages.push(reconstructPageLines(positioned));
       }
+      // Scan *all* image-only pages (including annex tables), not just the heading.
+      // Keep within a bounded number of OCR pages to avoid unbounded browser memory/time.
+      const MAX_OCR_PAGES=20;
+      const imagePages=pages.flatMap((page,i)=>page.replace(/\\s/g,'').length<140?[i]:[]);
+      let scannedText='';
+      let scanNote='';
+      if(imagePages.length){
+        try{
+          const targets=imagePages.slice(0,MAX_OCR_PAGES);
+          const proxies=await Promise.all(targets.map(i=>pdf.getPage(i+1)));
+          onProgress?.('Đang nhận diện '+targets.length+' trang PDF scan bằng OCR tiếng Việt…');
+          const recognized=await recognizePdfPages(proxies,(done,total)=>
+            onProgress?.('Đã nhận diện '+done+'/'+total+' trang PDF scan'));
+          targets.forEach((pageIndex,j)=>{
+            if(recognized[j].replace(/\\s/g,'').length>pages[pageIndex].replace(/\\s/g,'').length)
+              pages[pageIndex]=recognized[j];
+          });
+          scannedText=recognized[0]??'';
+          if(imagePages.length>MAX_OCR_PAGES)
+            scanNote='Tệp có '+imagePages.length+' trang cần OCR; chỉ xử lý '+MAX_OCR_PAGES+' trang đầu. Cần đối chiếu các trang còn lại.';
+        } catch(error){
+          scanNote='Không hoàn tất OCR nhiều trang: '+(error instanceof Error?error.message:String(error));
+        }
+      }
       const text=pages.join('\n');
       const header=extractDocumentHeader(text);
-      if(header.number && header.documentDate && header.subject) return {text} satisfies ReadResult;
+      if(header.number && header.documentDate && header.subject) return {text,notice:scanNote||undefined} satisfies ReadResult;
       try {
         const first=await pdf.getPage(1);
-        const ocr=await recognizePdfHeader(first);
+        const ocr=scannedText
+          ? {text:scannedText,confidence:0}
+          : await recognizePdfHeader(first);
         const ocrHeader=extractDocumentHeader(ocr.text);
         const useful=Boolean(ocrHeader.number||ocrHeader.documentDate||ocrHeader.subject);
         if(!useful && !text.trim()) throw Error('OCR không nhận diện được nội dung phần đầu PDF.');
@@ -146,14 +172,14 @@ export async function readDocument(file:File) {
           text:text.trim()?text:ocr.text,
           ocrHeader,
           ocrConfidence:ocr.confidence,
-          notice:useful
-            ? 'Đã thử OCR tiếng Việt trên trang đầu vì thiếu thông tin. Các trường nhận diện bằng OCR cần đối chiếu với văn bản gốc.'
-            : 'OCR trang đầu chưa khôi phục được các trường thiếu; hãy nhập thủ công theo văn bản gốc.'
+          notice:[scanNote,useful
+            ? 'Đã thử OCR tiếng Việt để nhận diện thông tin đầu văn bản; phải đối chiếu kết quả trước khi lưu.'
+            : 'OCR chưa khôi phục được các trường còn thiếu; hãy đối chiếu bản gốc.'].filter(Boolean).join(' ')
         } satisfies ReadResult;
       } catch(error) {
         return {
           text,
-          notice:'Chưa hoàn tất OCR trang đầu: '+(error instanceof Error?error.message:String(error))+
+          notice:[scanNote,'Chưa hoàn tất OCR trang đầu: '+(error instanceof Error?error.message:String(error))].filter(Boolean).join(' ')+
             ' Vui lòng đối chiếu số, ngày và trích yếu trên văn bản gốc.'
         } satisfies ReadResult;
       }
