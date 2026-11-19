@@ -184,3 +184,22 @@ test('prefer OCR for Vietnamese syllables broken into character spaces',()=>{
  const scanned={number:'24-CT/TU',documentDate:'2026-10-12',subject:'Của Ban Thường vụ Tỉnh ủy về tăng cường sự lãnh đạo'};
  expect(reconcileHeaders(embedded,scanned).subject).toBe(scanned.subject);
 });
+
+test('read annex numbered task rows after the signature page',()=>{
+ const s=`CHỈ THỊ
+Về thực hiện các nhiệm vụ trọng tâm năm học
+1. Bộ Giáo dục và Đào tạo chủ trì xây dựng kế hoạch.
+Nơi nhận:
+- Như trên
+KT. THỦ TƯỚNG
+Phụ lục
+STT Nhiệm vụ Cơ quan chủ trì Cơ quan phối hợp
+1 Xây dựng bộ chỉ số theo dõi thực hiện các mục tiêu
+phát triển giáo dục và đào tạo Bộ Giáo dục và Đào tạo
+2 Hoàn thiện các tiêu chí, tiêu chuẩn, định mức về
+trường học để thực hiện chương trình mới`;
+ const p=extractTaskProposals(s);
+ expect(p.length).toBeGreaterThanOrEqual(3);
+ expect(p.some(x=>x.title.includes('Xây dựng bộ chỉ số'))).toBe(true);
+ expect(p.some(x=>x.title.includes('Hoàn thiện các tiêu chí'))).toBe(true);
+});
