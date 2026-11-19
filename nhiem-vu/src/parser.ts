@@ -1,5 +1,6 @@
 import type {Source} from './model';
 import {recognizePdfHeader} from './ocr';
+import {extractTaskProposals} from './task-extraction';
 
 export interface Proposal {title:string; detail:string; lead:string; partners:string; deadline:string; deliverable:string; excerpt:string}
 export interface Analysis {source:Source; documentDate:string; proposals:Proposal[]}
@@ -104,23 +105,7 @@ export const ruleAnalyzer:TaskAnalyzer = {
   async analyze(text) {
     const lines = text.normalize('NFC').split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
     const {number,documentDate,subject}=extractDocumentHeader(text);
-    const proposals:Proposal[] = [];
-    for (let i=0;i<lines.length;i++) {
-      const line=lines[i];
-      if (!assignment.test(line) || /^(?:chủ trì|phối hợp|thời hạn|sản phẩm|kết quả)\s*:/i.test(line)) continue;
-      let excerpt=line;
-      while (i+1<lines.length && /^(?:chủ trì|phối hợp|thời hạn|sản phẩm|kết quả)\s*:/i.test(lines[i+1])) excerpt+='\n'+lines[++i];
-      const fields=excerpt.split('\n');
-      const explicitDate=excerpt.match(/(?:trước(?: ngày)?|thời hạn\s*:\s*|chậm nhất(?: ngày)?)\s*(\d{1,2})[/-](\d{1,2})[/-](\d{4})/i);
-      const deadline=explicitDate ? [explicitDate[3],explicitDate[2].padStart(2,'0'),explicitDate[1].padStart(2,'0')].join('-') : '';
-      const clean=line.replace(prefix,'');
-      proposals.push({
-        title:clean.slice(0,180),detail:clean,excerpt,deadline,
-        lead:fields.map(l=>metadata(l,/^chủ trì\s*:\s*(.+)$/i)).find(Boolean)??clean.match(/(?:^Giao\s+)?(.+?)\s+chủ trì/i)?.[1]??'',
-        partners:fields.map(l=>metadata(l,/^phối hợp\s*:\s*(.+)$/i)).find(Boolean)??clean.match(/phối hợp(?: với)?\s+([^;,.]+)/i)?.[1]??'',
-        deliverable:fields.map(l=>metadata(l,/^(?:sản phẩm|kết quả)\s*:\s*(.+)$/i)).find(Boolean)??''
-      });
-    }
+    const proposals=extractTaskProposals(text);
     return {source:{number,subject},documentDate,proposals};
   }
 };
