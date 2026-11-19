@@ -1,6 +1,7 @@
 import type {Source} from './model';
 import {recognizePdfHeader} from './ocr';
 import {extractTaskProposals} from './task-extraction';
+import {reconstructPageLines} from './pdf-layout';
 
 export interface Proposal {title:string; detail:string; lead:string; partners:string; deadline:string; deliverable:string; excerpt:string}
 export interface Analysis {source:Source; documentDate:string; proposals:Proposal[]}
@@ -128,20 +129,9 @@ export async function readDocument(file:File) {
       for(let index=1;index<=pdf.numPages;index++) {
         const page=await pdf.getPage(index);
         const content=await page.getTextContent();
-        // Sort positioned PDF text items into visual lines. This catches overlaid
-        // number/day stamps emitted at the END of the PDF content stream.
         const positioned=content.items.filter(item=>'str' in item && 'transform' in item)
-          .map(item=>({str:item.str,x:item.transform[4],y:item.transform[5]}))
-          .filter(item=>item.str.trim());
-        positioned.sort((a,b)=>b.y-a.y || a.x-b.x);
-        const lines:{y:number;parts:typeof positioned}[]=[];
-        for(const item of positioned) {
-          const previous=lines.at(-1);
-          if(previous && Math.abs(previous.y-item.y)<=4) previous.parts.push(item);
-          else lines.push({y:item.y,parts:[item]});
-        }
-        pages.push(lines.map(line=>line.parts.sort((a,b)=>a.x-b.x)
-          .map(part=>part.str.trim()).join(' ')).join('\n'));
+          .map(item=>({str:item.str,x:item.transform[4],y:item.transform[5],width:item.width,height:item.height}));
+        pages.push(reconstructPageLines(positioned));
       }
       const text=pages.join('\n');
       const header=extractDocumentHeader(text);
