@@ -38,18 +38,18 @@ export function extractTaskProposals(text:string):Proposal[] {
  let annex=false,skipToAnnex=false,numberedMode=false;
  const flush=()=>{if(current.length){blocks.push({lines:current,annex});current=[];}};
  for(const line of content) {
-   if(/^\\[Trang\\s+\\d+\\]$/iu.test(line))continue;
-   if(/^(?:phụ\\s+lục|phụ lục kèm theo)/iu.test(line)){
+   if(/^\[Trang\s+\d+\]$/iu.test(line))continue;
+   if(/^(?:phụ\s+lục|phụ lục kèm theo)/iu.test(line)){
      flush();annex=true;skipToAnnex=false;numberedMode=false;continue;
    }
-   if(/^(?:Nơi nhận|KT\\.\\s*|TM\\.\\s*)/iu.test(line)){
+   if(/^(?:Nơi nhận|KT\.\s*|TM\.\s*)/iu.test(line)){
      flush();skipToAnnex=true;continue;
    }
    if(skipToAnnex)continue;
-   if(annex && /^(?:STT|Số TT|Nhiệm vụ\\s+Cơ quan)/iu.test(line))continue;
+   if(annex && /^(?:STT|Số TT|Nhiệm vụ\s+Cơ quan)/iu.test(line))continue;
    if(heading.test(line) && !action.test(line)){flush();continue;}
    const numbered=enumerated.test(line);
-   const appendixRow=annex && /^\\d{1,2}\\s+(?=[\\p{L}])/iu.test(line);
+   const appendixRow=annex && /^\d{1,2}\s+(?=[\p{L}])/iu.test(line);
    const starts=numbered||appendixRow||(!numberedMode&&actor.test(line));
    if(starts){
      flush();current=[line];
@@ -68,7 +68,7 @@ export function extractTaskProposals(text:string):Proposal[] {
    const first=lines[0];
    const full=lines.join(' ').replace(/[ \t]+/g,' ').trim();
    if((!annex&&!action.test(full)) || full.length<24 || proseIntro.test(first))continue;
-   const title=full.replace(enumerated,'').replace(annex?/^\\d{1,2}\\s+/:/$^/,'').slice(0,180);
+   const title=full.replace(enumerated,'').replace(annex?/^\d{1,2}\s+/:/$^/,'').slice(0,180);
    const key=title.toLowerCase().replace(/\s+/g,' ');
    if(dedup.has(key))continue;
    dedup.add(key);
