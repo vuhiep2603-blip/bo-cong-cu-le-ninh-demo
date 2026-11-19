@@ -82,11 +82,11 @@ export function extractDocumentHeader(text:string) {
 
 // Detect PDF character-level spacing such as "v ề t ă ng c ườ ng".
 export function hasFragmentedVietnameseWords(value:string) {
-  const words=value.split(/\\s+/).filter(Boolean);
+  const words=value.split(/\s+/).filter(Boolean);
   let singleRuns=0;
   for(let i=0;i<words.length-2;i++){
     const group=words.slice(i,i+3);
-    if(group.every(w=>[...w.replace(/[^\\p{L}]/gu,'')].length===1))singleRuns++;
+    if(group.every(w=>[...w.replace(/[^\p{L}]/gu,'')].length===1))singleRuns++;
   }
   return singleRuns>=1 || words.length>=8 && words.filter(w=>[...w].length===1).length/words.length>0.25;
 }
