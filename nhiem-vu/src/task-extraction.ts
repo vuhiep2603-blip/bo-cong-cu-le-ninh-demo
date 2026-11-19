@@ -30,16 +30,17 @@ export function extractTaskProposals(text:string):Proposal[] {
  const all=text.split(/\r?\n/).map(cleanLine).filter(Boolean);
  // Strip front matter. An explicit assignment list is the safest structural anchor.
  const intro=all.findIndex(line=>proseIntro.test(line));
- const firstNumber=all.findIndex((line,i)=>i>2&&enumerated.test(line)&&action.test(line));
+ const firstNumber=all.findIndex((line,i)=>i>=1&&enumerated.test(line)&&action.test(line));
  const begin=intro>=0?intro+1:firstNumber>=0?firstNumber:0;
  const content=all.slice(begin);
  const blocks:string[][]=[];
+ const numberedMode=content.some(line=>enumerated.test(line));
  let current:string[]=[];
  const flush=()=>{if(current.length){blocks.push(current);current=[];}};
  for(const line of content) {
    if(/^(?:Nơi nhận|KT\.\s*|TM\.\s*|Phụ lục|Bảng\s+\d+)/iu.test(line)) {flush();break;}
    if(heading.test(line) && !action.test(line)) {flush();continue;}
-   const starts=enumerated.test(line)||actor.test(line);
+   const starts=enumerated.test(line)||(!numberedMode&&actor.test(line));
    if(starts) {flush();current=[line];continue;}
    if(labeled.test(line)) {if(current.length)current.push(line);continue;}
    if(!current.length) {if(action.test(line) && line.length>28)current=[line];continue;}
@@ -56,8 +57,9 @@ export function extractTaskProposals(text:string):Proposal[] {
    const key=title.toLowerCase().replace(/\s+/g,' ');
    if(dedup.has(key))continue;
    dedup.add(key);
+   const firstBody=first.replace(enumerated,'');
    const lead=labeledValue(lines.join('\n'),/^(?:cơ quan\s+)?chủ trì\s*:\s*(.+)$/iu)
-     ||first.match(/^(.+?)\s+(?:chủ trì|tổ chức|tham mưu)\b/iu)?.[1]||'';
+     ||firstBody.match(/^(.+?)\s+(?:chủ trì|tổ chức|tham mưu)\b/iu)?.[1]||'';
    proposals.push({
      title,detail:full,excerpt:lines.join('\n'),lead,
      partners:labeledValue(lines.join('\n'),/^(?:cơ quan\s+)?phối hợp\s*:\s*(.+)$/iu),
