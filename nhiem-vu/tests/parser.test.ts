@@ -178,3 +178,9 @@ Văn phòng Đảng ủy phối hợp tổng hợp kết quả.`;
  expect(p).toHaveLength(1);
  expect(p[0].detail).toContain('Văn phòng Đảng ủy phối hợp');
 });
+
+test('prefer OCR for Vietnamese syllables broken into character spaces',()=>{
+ const embedded={number:'24-CT/TU',documentDate:'2026-10-12',subject:'CỦA BAN THƯỜNG VỤ TỈNH ỦY v ề t ă ng c ườ ng s ự lãnh đạo'};
+ const scanned={number:'24-CT/TU',documentDate:'2026-10-12',subject:'Của Ban Thường vụ Tỉnh ủy về tăng cường sự lãnh đạo'};
+ expect(reconcileHeaders(embedded,scanned).subject).toBe(scanned.subject);
+});
