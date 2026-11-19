@@ -33,27 +33,42 @@ export function extractTaskProposals(text:string):Proposal[] {
  const firstNumber=all.findIndex((line,i)=>i>=1&&enumerated.test(line)&&action.test(line));
  const begin=intro>=0?intro+1:firstNumber>=0?firstNumber:0;
  const content=all.slice(begin);
- const blocks:string[][]=[];
- const numberedMode=content.some(line=>enumerated.test(line));
+ const blocks:{lines:string[];annex:boolean}[]=[];
  let current:string[]=[];
- const flush=()=>{if(current.length){blocks.push(current);current=[];}};
+ let annex=false,skipToAnnex=false,numberedMode=false;
+ const flush=()=>{if(current.length){blocks.push({lines:current,annex});current=[];}};
  for(const line of content) {
-   if(/^(?:Nơi nhận|KT\.\s*|TM\.\s*|Phụ lục|Bảng\s+\d+)/iu.test(line)) {flush();break;}
-   if(heading.test(line) && !action.test(line)) {flush();continue;}
-   const starts=enumerated.test(line)||(!numberedMode&&actor.test(line));
-   if(starts) {flush();current=[line];continue;}
-   if(labeled.test(line)) {if(current.length)current.push(line);continue;}
-   if(!current.length) {if(action.test(line) && line.length>28)current=[line];continue;}
+   if(/^\\[Trang\\s+\\d+\\]$/iu.test(line))continue;
+   if(/^(?:phụ\\s+lục|phụ lục kèm theo)/iu.test(line)){
+     flush();annex=true;skipToAnnex=false;numberedMode=false;continue;
+   }
+   if(/^(?:Nơi nhận|KT\\.\\s*|TM\\.\\s*)/iu.test(line)){
+     flush();skipToAnnex=true;continue;
+   }
+   if(skipToAnnex)continue;
+   if(annex && /^(?:STT|Số TT|Nhiệm vụ\\s+Cơ quan)/iu.test(line))continue;
+   if(heading.test(line) && !action.test(line)){flush();continue;}
+   const numbered=enumerated.test(line);
+   const appendixRow=annex && /^\\d{1,2}\\s+(?=[\\p{L}])/iu.test(line);
+   const starts=numbered||appendixRow||(!numberedMode&&actor.test(line));
+   if(starts){
+     flush();current=[line];
+     if(numbered)numberedMode=true;
+     continue;
+   }
+   if(labeled.test(line)){if(current.length)current.push(line);continue;}
+   if(!current.length){if(action.test(line) && line.length>28)current=[line];continue;}
    current.push(line);
  }
  flush();
  const dedup=new Set<string>();
  const proposals:Proposal[]=[];
- for(const lines of blocks) {
+ for(const block of blocks) {
+   const {lines,annex}=block;
    const first=lines[0];
    const full=lines.join(' ').replace(/[ \t]+/g,' ').trim();
-   if(!action.test(full) || full.length<24 || proseIntro.test(first))continue;
-   const title=full.replace(enumerated,'').slice(0,180);
+   if((!annex&&!action.test(full)) || full.length<24 || proseIntro.test(first))continue;
+   const title=full.replace(enumerated,'').replace(annex?/^\\d{1,2}\\s+/:/$^/,'').slice(0,180);
    const key=title.toLowerCase().replace(/\s+/g,' ');
    if(dedup.has(key))continue;
    dedup.add(key);
