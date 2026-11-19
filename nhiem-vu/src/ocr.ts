@@ -52,3 +52,42 @@ export async function recognizePdfHeader(page:PDFPageProxy):Promise<{text:string
     canvas.width=0;canvas.height=0;
   }
 }
+
+/** OCR each scanned PDF page in sequence using ONE local Vietnamese model worker. */
+export async function recognizePdfPages(
+  pages:PDFPageProxy[],
+  onProgress?:(complete:number,total:number)=>void
+):Promise<string[]> {
+  if(!pages.length)return [];
+  const Tesseract=await loadRuntime();
+  const worker=await Tesseract.createWorker('vie',1,{
+    workerPath:ocrAssets('worker.min.js'),
+    corePath:ocrAssets('core'),
+    langPath:ocrAssets('lang'),
+    workerBlobURL:false,
+    cacheMethod:'none'
+  });
+  const output:string[]=[];
+  try {
+    for(let i=0;i<pages.length;i++){
+      const page=pages[i];
+      const viewport=page.getViewport({scale:2.2});
+      const canvas=document.createElement('canvas');
+      canvas.width=Math.ceil(viewport.width);
+      canvas.height=Math.ceil(viewport.height);
+      const context=canvas.getContext('2d',{willReadFrequently:true});
+      if(!context)throw Error('Không tạo được vùng ảnh phục vụ OCR.');
+      try {
+        await page.render({canvas,canvasContext:context,viewport}).promise;
+        const result=await worker.recognize(canvas);
+        output.push(result.data.text??'');
+      } finally {
+        canvas.width=0;canvas.height=0;
+      }
+      onProgress?.(i+1,pages.length);
+    }
+    return output;
+  } finally {
+    await worker.terminate();
+  }
+}
