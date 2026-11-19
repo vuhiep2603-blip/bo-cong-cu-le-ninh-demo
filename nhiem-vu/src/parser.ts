@@ -28,7 +28,7 @@ export function extractDocumentHeader(text:string) {
   const headerText=header.join('\n');
   // Number and designation often occupy separate PDF glyphs/cells:
   // "Số: 20/TB - CQTTBCĐ", "Số 363 -CV/TU", or split after "TB-".
-  const numberRows=header.slice(0,14).join('\n');
+  const numberRows=header.slice(0,Math.min(header.length,35)).join('\n');
   const numberMatch=numberRows.match(/(?:^|[^\p{L}])Số\s*[:：]?\s*(\d{1,6})\s*([-–—/])\s*([A-ZĐa-zđ][\p{L}\p{N}./\-–—\s]{0,40})/iu);
   let number='';
   if(numberMatch) {
@@ -41,7 +41,7 @@ export function extractDocumentHeader(text:string) {
   // Restrict candidate dates to the administrative heading, not the task body.
   const datePattern=/ngày\s*([0-9OoIl]{1,2})\s*tháng\s*([0-9OoIl]{1,2})\s*năm\s*(\d{4})|ngày\s*([0-9OoIl]{1,2})\s*[\/.\-]\s*([0-9OoIl]{1,2})\s*[\/.\-]\s*(\d{4})/iu;
   let documentDate='';
-  const shortHeader=header.slice(0,Math.min(header.length,18));
+  const shortHeader=header.slice(0,Math.min(header.length,35));
   for(let i=0;i<shortHeader.length;i++) {
     const line=shortHeader[i];
     const dateLine=/(?:^|,)\s*ngày\b/iu.test(line)
