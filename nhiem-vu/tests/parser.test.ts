@@ -2,6 +2,8 @@ import {expect,test} from 'vitest';
 import {localDay,isLate} from '../src/model';
 import type {Task} from '../src/model';
 import {extractDocumentHeader,ruleAnalyzer,reconcileHeaders} from '../src/parser';
+import {reconstructPageLines} from '../src/pdf-layout';
+import {extractTaskProposals} from '../src/task-extraction';
 
 test('extracts metadata, fields and traceable separate proposals without external services',async()=>{
  const result=await ruleAnalyzer.analyze(`Số: 12-KH/ĐU
@@ -137,4 +139,42 @@ Thực hiện Nghị quyết số 71-NQ/TW ngày 22 tháng 8 năm 2025`;
  expect(header.documentDate).toBe('2026-08-05');
  expect(header.subject).toBe('Về thực hiện các nhiệm vụ trọng tâm năm học 2026 - 2027');
  expect(header.number).toBe('34/CT-TTg'); // raw OCR candidate may misread scanned 31 as 34
+});
+
+test('join PDF glyph fragments inside Vietnamese words, keep actual word gaps',()=>{
+  const letters=[
+    {str:'v',x:0,y:80,width:8},{str:'ề',x:8,y:80,width:9},
+    {str:'t',x:24,y:80,width:6},{str:'ă',x:30,y:80,width:8},
+    {str:'n',x:38,y:80,width:8},{str:'g',x:46,y:80,width:8},
+    {str:'cường',x:66,y:80,width:38}
+  ];
+  expect(reconstructPageLines(letters)).toBe('về tăng cường');
+});
+test('keep the complete directive clause and subordinate owner and product paragraphs',()=>{
+ const body=`BAN THƯỜNG VỤ TỈNH ỦY YÊU CẦU TẬP TRUNG THỰC HIỆN CÁC NHIỆM VỤ SAU:
+1. Ban Tuyên giáo Tỉnh ủy chủ trì hướng dẫn quán triệt,
+tuyên truyền Chỉ thị; phối hợp với các cơ quan liên quan.
+Thời hạn: 30/11/2026
+Sản phẩm: Báo cáo tổng hợp
+2. UBND tỉnh tập trung rà soát, phân bổ
+nguồn lực và xử lý khó khăn, vướng mắc.
+Kết quả: Kế hoạch triển khai`;
+ const p=extractTaskProposals(body);
+ expect(p).toHaveLength(2);
+ expect(p[0].detail).toContain('tuyên truyền Chỉ thị; phối hợp');
+ expect(p[0].lead).toBe('Ban Tuyên giáo Tỉnh ủy');
+ expect(p[0].deliverable).toBe('Báo cáo tổng hợp');
+ expect(p[0].deadline).toBe('2026-11-30');
+ expect(p[1].detail).toContain('nguồn lực và xử lý');
+ expect(p[1].deliverable).toBe('Kế hoạch triển khai');
+});
+test('avoid turning letterhead and general introductory directive into tasks',()=>{
+ const text=`TỈNH ỦY QUẢNG TRỊ
+Số: 24-CT/TU
+Ban Thường vụ Tỉnh ủy yêu cầu tập trung thực hiện các nhiệm vụ sau:
+1. Ban Xây dựng Đảng chủ trì tổ chức thực hiện kế hoạch.
+Văn phòng Đảng ủy phối hợp tổng hợp kết quả.`;
+ const p=extractTaskProposals(text);
+ expect(p).toHaveLength(1);
+ expect(p[0].detail).toContain('Văn phòng Đảng ủy phối hợp');
 });
