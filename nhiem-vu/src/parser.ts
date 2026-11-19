@@ -124,6 +124,11 @@ export const ruleAnalyzer:TaskAnalyzer = {
   }
 };
 
+/** A PDF page with almost no text should be rendered and OCR-ed in the browser. */
+export function isSparsePdfPage(text:string):boolean {
+  return text.replace(/\s/g,'').length<140;
+}
+
 export async function readDocument(file:File,onProgress?:(label:string)=>void) {
   if (file.size>15*1024*1024) throw Error('Tệp vượt quá 15 MB.');
   if (/\.docx$/i.test(file.name)) {
@@ -149,7 +154,7 @@ export async function readDocument(file:File,onProgress?:(label:string)=>void) {
       // Scan *all* image-only pages (including annex tables), not just the heading.
       // Keep within a bounded number of OCR pages to avoid unbounded browser memory/time.
       const MAX_OCR_PAGES=20;
-      const imagePages=pages.flatMap((page,i)=>page.replace(/\\s/g,'').length<140?[i]:[]);
+      const imagePages=pages.flatMap((page,i)=>isSparsePdfPage(page)?[i]:[]);
       let scannedText='';
       let scanNote='';
       if(imagePages.length){
@@ -160,10 +165,10 @@ export async function readDocument(file:File,onProgress?:(label:string)=>void) {
           const recognized=await recognizePdfPages(proxies,(done,total)=>
             onProgress?.('Đã nhận diện '+done+'/'+total+' trang PDF scan'));
           targets.forEach((pageIndex,j)=>{
-            if(recognized[j].replace(/\\s/g,'').length>pages[pageIndex].replace(/\\s/g,'').length)
+            if(recognized[j].replace(/\s/g,'').length>pages[pageIndex].replace(/\s/g,'').length)
               pages[pageIndex]=recognized[j];
           });
-          scannedText=recognized[0]??'';
+          scannedText=targets[0]===0?(recognized[0]??''):'';
           if(imagePages.length>MAX_OCR_PAGES)
             scanNote='Tệp có '+imagePages.length+' trang cần OCR; chỉ xử lý '+MAX_OCR_PAGES+' trang đầu. Cần đối chiếu các trang còn lại.';
         } catch(error){
