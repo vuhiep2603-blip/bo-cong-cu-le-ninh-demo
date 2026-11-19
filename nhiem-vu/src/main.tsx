@@ -120,7 +120,8 @@ function Assignment({users,profile}:{users:Profile[];profile:Profile}) {
    const file=e.currentTarget.files?.[0];e.currentTarget.value='';
    if(file) void action.run(async()=>{
     setFileInfo(file.name);
-    const extracted=await readDocument(file);
+    setDone('Đang đọc nội dung tệp...');
+    const extracted=await readDocument(file,(label)=>setDone(label));
     const result=await ruleAnalyzer.analyze(extracted.text);
     let conflictNotice='';
     const scanNumberOnly=Boolean(extracted.ocrHeader?.number && !result.source.number);
