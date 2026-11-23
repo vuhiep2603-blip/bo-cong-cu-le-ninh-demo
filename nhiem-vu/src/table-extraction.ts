@@ -31,7 +31,7 @@ export function extractTables(rows:DocumentRow[]) {
      proposals.push({title:detail.slice(0,180),detail,lead:current.lead??'',partners:current.partners??'',
        deadline:normalizeDate(current.deadline??''),deadlineText:current.deadline??'',deliverable:current.deliverable??'',
        excerpt:excerpts.join('\n'),pages:[...pages],section:current.index?'Hàng '+current.index:'Bảng phân công',
-       y:first.y,origin:first.origin,confidence:first.confidence});
+       y:first.sourceY??first.y,origin:first.origin,confidence:first.confidence});
    }
    current={};pages=new Set();excerpts=[];first=undefined;
  }

@@ -1,5 +1,6 @@
+import {decideHeaderField} from './header-consensus';
 import type {Source} from './model';
-import {extractTaskProposals} from './task-extraction';
+import {extractTaskProposals,locateTaskProposals} from './task-extraction';
 import {inspectImages,mergePageRows,orderParagraphRows,reconstructRows} from './pdf-layout';
 import {docxRows} from './docx-layout';
 import {extractTables} from './table-extraction';
@@ -13,7 +14,7 @@ export interface Proposal {
 }
 type HeaderValue = ReturnType<typeof extractDocumentHeader>;
 export interface HeaderReading {
-  header:HeaderValue; origin:Origin; confidence?:number; page?:number; region:string; excerpt:string;
+  header:HeaderValue; origin:Origin; engine?:string; confidence?:number; page?:number; region:string; excerpt:string;
   fields?: {label:string;value:string;page?:number;y?:number;region?:string}[];
 }
 export interface Analysis {source:Source;documentDate:string;proposals:Proposal[];readings?:HeaderReading[]}
@@ -142,7 +143,7 @@ function reading(rows:DocumentRow[],origin:Origin,region:string,confidence?:numb
  const header=extractDocumentHeader(excerpt);
  const fields:NonNullable<HeaderReading['fields']>=[];
  function add(label:string,value:string,row?:DocumentRow){
-   if(value)fields.push({label,value,page:row?.page,y:row?.y,region:row?.region??region});
+   if(value)fields.push({label,value,page:row?.page,y:row?.sourceY??row?.y,region:row?.region??region});
  }
  const issuerPattern=/^(?:đảng (?:bộ|[ủu]y)|tỉnh [ủu]y|huyện [ủu]y|ban |văn phòng|[ủu]y ban|ubnd|hội đồng|bộ |thủ tướng|chính phủ)/iu;
  const typePattern=/^(?:công văn|chỉ thị|nghị quyết|quyết định|kế hoạch|thông báo|kết luận|báo cáo|hướng dẫn|quy định|tờ trình|chương trình)$/iu;
@@ -159,18 +160,16 @@ function reading(rows:DocumentRow[],origin:Origin,region:string,confidence?:numb
  add('Trích yếu',header.subject,rowsWithText.find(x=>/^(?:v\/v|trích yếu|về việc)/iu.test(x.text))?.row??foundType?.row);
  add('Chức vụ người ký',signTitle?rowText(signTitle):'',signTitle);
  add('Người ký',explicitSigner?rowText(explicitSigner).replace(/^người ký\s*:\s*/iu,''):explicitName?rowText(explicitName):'',explicitSigner??explicitName);
- return {header,origin,page:rows[0]?.page,region,confidence,excerpt,fields};
+ return {header,origin,engine:origin==='OCR'?'Tesseract':undefined,page:rows[0]?.page,region,confidence,excerpt,fields};
 }
 
 export async function analyzeDocument(input:ReadResult):Promise<Analysis> {
  const {proposals:tables,consumed}=extractTables(input.rows);
  const text=orderParagraphRows(input.rows.filter(row=>!consumed.has(row)&&row.region!=='chân trang'&&!signatureMetadata.test(rowText(row))));
- const proposals=extractTaskProposals(text.map(rowText).join('\n')).map(prop=>{
-   const excerpt=prop.excerpt.split('\n');
-   const start=text.findIndex(row=>rowText(row).replace(/\s+/g,' ').trim()===excerpt[0]);
-   const locations=start<0?[]:text.slice(start,start+excerpt.length);
-   return {...prop,pages:[...new Set(locations.flatMap(row=>row.page?[row.page]:[]))],
-     y:locations[0]?.y,origin:locations[0]?.origin,confidence:locations[0]?.confidence};
+ const proposals=locateTaskProposals(text.map(rowText)).map(({proposal,locations})=>{
+   const rows=locations.map(index=>text[index]);
+   return {...proposal,pages:[...new Set(rows.flatMap(row=>row.page?[row.page]:[]))],
+     y:rows[0]?.sourceY??rows[0]?.y,origin:rows[0]?.origin,confidence:rows[0]?.confidence};
  });
  for(const prop of [...tables,...proposals]){
    const scope=(prop.lead+' '+prop.partners+' '+prop.detail).normalize('NFC');
@@ -184,15 +183,16 @@ export async function analyzeDocument(input:ReadResult):Promise<Analysis> {
    if(alternative===first)continue;
    header=reconcileHeaders(header,alternative.header);
  }
- // An ambiguous number/date is a decision for the operator, never an OCR override.
- for(const key of ['number','documentDate'] as const){
-   const values=[...new Set(input.headers.map(x=>x.header[key]).filter(Boolean))];
-   const longest=values.sort((a,b)=>b.length-a.length)[0];
-   if(longest&&values.some(value=>key==='number'
-     ? value!==longest&&!longest.startsWith(value+'-') : value!==longest)) {
-     header={...header,[key]:''};
-   }
- }
+ const date=decideHeaderField('documentDate',input.headers.map(item=>({...item,value:item.header.documentDate})));
+ const number=decideHeaderField('number',input.headers.map(item=>{
+   const marker=item.fields?.find(field=>field.label==='Số, ký hiệu'&&field.value===item.header.number);
+   // A labeled number near the top may stand on its own only when accompanied
+   // by the separately corroborated dateline in the same extraction.
+   const contextualAnchor=Boolean(marker&&marker.page===1&&marker.y!==undefined&&marker.y>=-210
+     &&date.value&&date.value===item.header.documentDate&&(item.confidence??0)>=85);
+   return {...item,value:item.header.number,contextualAnchor};
+ }));
+ header={...header,number:number.value,documentDate:date.value};
  return {source:{number:header.number,subject:header.subject},documentDate:header.documentDate,
    proposals:[...proposals,...tables],readings:input.headers};
 }
@@ -222,7 +222,7 @@ export async function readDocument(file:File,onProgress?:(label:string)=>void):P
     const pages:DocumentRow[][]=[];
     const needsOcr:number[]=[];
     const mixedPages=new Set<number>();
-    let firstHasImage=false;
+    let firstHasImage=false,firstRotation=0;
     async function engine(){return ocr??=(await (await import('./ocr')).createOcrSession());}
     for(let i=1;i<=pdf.numPages;i++){
       const page=await pdf.getPage(i);
@@ -251,7 +251,9 @@ export async function readDocument(file:File,onProgress?:(label:string)=>void):P
     for(const index of needsOcr.slice(0,20)){
       onProgress?.('Đang OCR tiếng Việt trang '+index+'/'+pdf.numPages+'…');
       try{
-        const scan=await (await engine()).scan(await pdf.getPage(index),index);
+        const scan=await (await engine()).scanPage(await pdf.getPage(index),index);
+        if(scan.rotation)notices.push('Đã thử tự xoay '+scan.rotation+'° cho trang '+index+'.');
+        if(index===1)firstRotation=scan.rotation;
         if(index===1){
           headers.push(reading(scan.rows.filter(row=>(row.y??0)>=top),
             'OCR','đầu trang 1 (từ ảnh quét)',scan.confidence,'',scan.rows));
@@ -270,7 +272,7 @@ export async function readDocument(file:File,onProgress?:(label:string)=>void):P
     if(firstHasImage||needsOcr.includes(1)||hasFragmentedVietnameseWords(header.subject)){
       onProgress?.('Đang đối chiếu số và ngày tại đầu trang…');
       try{
-        const scan=await (await engine()).scan(first,1,true,true);
+        const scan=await (await engine()).scan(first,1,true,true,undefined,undefined,'contrast',firstRotation);
         const enhanced=reading(scan.rows,'OCR','đầu trang 1 (tăng tương phản)',scan.confidence,scan.text);
         headers.push(enhanced);
         for(const [key,zone,label] of [
@@ -281,15 +283,23 @@ export async function readDocument(file:File,onProgress?:(label:string)=>void):P
           const labelRow=[...scan.rows,...pages[0]].find(row=>key==='number'
              ? /^số\s*[:：]/iu.test(rowText(row))
              : /(?:^|,)\s*ngày\s/iu.test(rowText(row)));
-          let crop=await (await engine()).scan(first,1,true,true,zone,labelRow?.y);
+          let crop=await (await engine()).scan(first,1,true,true,zone,labelRow?.y,'contrast',firstRotation);
           let result=reading(crop.rows,'OCR','vùng '+label,crop.confidence,crop.text);
           if(!result.header[key]&&labelRow){
-            crop=await (await engine()).scan(first,1,true,true,zone);
+            crop=await (await engine()).scan(first,1,true,true,zone,undefined,'contrast',firstRotation);
             result=reading(crop.rows,'OCR','vùng '+label,crop.confidence,crop.text);
           }
           // A cropped area is not evidence about fields outside that area.
-          if(result.header[key])headers.push({...result,header:{number:'',documentDate:'',subject:'',[key]:result.header[key]},
-            fields:result.fields?.filter(field=>field.value===result.header[key])});
+          const save=(candidate:HeaderReading)=> {
+            if(candidate.header[key])headers.push({...candidate,header:{number:'',documentDate:'',subject:'',[key]:candidate.header[key]},
+              fields:candidate.fields?.filter(field=>field.value===candidate.header[key])});
+          };
+          save(result);
+          // An independent image variant is confined to the uncertain field, not the entire document.
+          if(!result.header[key]||candidates.size!==1||!enhanced.header[key]||scan.confidence<75){
+            const adaptive=await (await engine()).scan(first,1,true,true,zone,labelRow?.y,'adaptive',firstRotation);
+            save(reading(adaptive.rows,'OCR','vùng '+label+' (nhị phân thích ứng)',adaptive.confidence,adaptive.text));
+          }
         }
       }catch(error){notices.push('Không đối chiếu được OCR đầu trang: '+(error instanceof Error?error.message:String(error)));}
     }

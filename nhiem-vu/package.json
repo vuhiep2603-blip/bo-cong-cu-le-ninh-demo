@@ -10,7 +10,8 @@
     "demo:seed": "node tests/seed-demo.mjs",
     "dev:demo": "vite --mode demo --host 127.0.0.1 --port 4180 --strictPort",
     "build:auth-qa": "tsc --noEmit && vite build --mode auth-qa",
-    "test:documents": "playwright test -c playwright.documents.config.ts"
+    "test:documents": "playwright test -c playwright.documents.config.ts",
+    "bench:ocr": "node tools/benchmark.mjs"
   },
   "type": "module",
   "dependencies": {
@@ -30,6 +31,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",
     "firebase-tools": "^15.36.0",
+    "onnxruntime-web": "1.23.2",
     "typescript": "^7.0.2",
     "vite": "^8.3.8",
     "vitest": "^5.1.0"

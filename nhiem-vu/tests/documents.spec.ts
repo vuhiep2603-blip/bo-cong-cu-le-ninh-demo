@@ -57,14 +57,13 @@ function imagePdf(rgb:Buffer,width:number,height:number) {
  pdf.push(Buffer.from('xref\n0 6\n0000000000 65535 f \n'+offsets.slice(1).map(x=>String(x).padStart(10,'0')+' 00000 n \n').join('')+'trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n'+offset+'\n%%EOF'));
  return Buffer.concat(pdf);
 }
-test('real Vietnamese OCR recognizes a raster-only PDF; all assets are same-origin',async({page})=>{
- const outside:string[]=[];
- page.context().on('request',req=>{if(!req.url().startsWith('http://127.0.0.1:4182/')) outside.push(req.url());});
- const png=await page.evaluate(()=>{
+async function raster(page:Page,rotation:boolean) {
+ return page.evaluate(rotation=>{
    const canvas=document.createElement('canvas');
    canvas.width=1190;canvas.height=1684;
    const c=canvas.getContext('2d')!;
    c.fillStyle='#fff';c.fillRect(0,0,canvas.width,canvas.height);
+   if(rotation){c.translate(canvas.width,canvas.height);c.rotate(Math.PI);}
    c.fillStyle='#111';c.font='28px serif';
    const lines=['ĐẢNG ỦY XÃ LỆ NINH','Số: 31/CT-TTg','Lệ Ninh, ngày 23 tháng 11 năm 2026','CHỈ THỊ',
      'Về tăng cường công tác tổng hợp','Kính gửi: Văn phòng Đảng ủy',
@@ -77,7 +76,12 @@ test('real Vietnamese OCR recognizes a raster-only PDF; all assets are same-orig
    let raw='';
    for(let i=0;i<rgb.length;i+=4096)raw+=String.fromCharCode(...rgb.subarray(i,i+4096));
    return btoa(raw);
- });
+ },rotation);
+}
+test('real Vietnamese OCR recognizes a raster-only PDF; all assets are same-origin',async({page})=>{
+ const outside:string[]=[];
+ page.context().on('request',req=>{if(!req.url().startsWith('http://127.0.0.1:4182/')) outside.push(req.url());});
+ const png=await raster(page,false);
  const start=Date.now();
  const {result,input}=await analyze(page,'scan.pdf',imagePdf(Buffer.from(png,'base64'),1190,1684));
  console.log('Bản scan giả lập, thời gian đọc/phân tích',Date.now()-start,'ms',input.headers.map(h=>({origin:h.origin,header:h.header,confidence:h.confidence})));
@@ -86,4 +90,13 @@ test('real Vietnamese OCR recognizes a raster-only PDF; all assets are same-orig
  expect(result.documentDate).toBe('2026-11-23');
  expect(result.proposals.some(p=>p.detail.includes('tổng hợp báo cáo'))).toBe(true);
  expect(outside).toEqual([]);
+});
+
+test('an upside-down raster page can be read with the orientation fallback',async({page})=>{
+ const raw=await raster(page,true);
+ const {result,input}=await analyze(page,'rotated.pdf',imagePdf(Buffer.from(raw,'base64'),1190,1684));
+ expect(input.notice).toContain('180°');
+ expect(result.source.number).toBe('31/CT-TTg');
+ expect(result.documentDate).toBe('2026-11-23');
+ expect(result.proposals).toEqual(expect.arrayContaining([expect.objectContaining({pages:[1]})]));
 });

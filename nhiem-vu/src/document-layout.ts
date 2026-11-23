@@ -4,6 +4,7 @@ export interface DocumentRow {
   cells:Cell[];
   page?:number;
   y?:number;
+  sourceY?:number;
   origin:Origin;
   region?:string;
   table?:string;

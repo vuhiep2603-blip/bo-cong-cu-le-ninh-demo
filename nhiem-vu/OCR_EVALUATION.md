@@ -72,3 +72,5 @@ Nguồn: [2292/QĐ-TTg](https://datafiles.chinhphu.vn/cpp/files/vbpq/2026/11/229
 - Bản cũ để khôi phục là `3ccd9ec` cùng artifact và cấu hình QA tương ứng. Chỉ thay SHA và triển khai kho QA sau khi ngưỡng thực tế được đáp ứng và có quyền phát hành. Không đổi Rules hoặc ghi dữ liệu thật để khôi phục.
 
 **Chưa nghiệm thu:** Chưa có tệp gốc của 20/TB-CQTTBCĐ, 363-CV/TU, 777/TTg-TCCV, 31/CT-TTg, 24-CT/TU, 2893/TB-UBND và văn bản Ban Nội chính mã tệp 1321-2026. Các số hiệu trong ca mô phỏng không thay cho tệp. Cần nhận bộ được phép dùng, xác minh trường và từng nhiệm vụ, chia development/holdout, chạy end-to-end Chrome và Edge trên Windows và đo bộ nhớ. Các kết quả đã quan sát chưa đạt mục tiêu số/ngày 100% và chưa đủ căn cứ cho precision/recall nhiệm vụ ≥95%.
+
+Xem [giai đoạn 2 và công cụ benchmark tại máy cá nhân](OCR_STAGE2.md) để đối chiếu kết quả trên các vùng số/ngày.
