@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="vi">
+<head><meta charset="utf-8"><title>Thử nghiệm OCR cục bộ</title></head>
+<body>
+<h1>Thử nghiệm OCR cục bộ</h1>
+<p>Đọc thử vùng đầu trang trên máy này. Giới hạn 20 MiB.</p>
+<form id="ocr">
+  <label>Tệp PDF <input type="file" accept=".pdf,application/pdf" required></label>
+  <button>Đọc vùng đầu trang</button>
+</form>
+<p id="status" role="status"></p>
+<table id="fields" hidden>
+  <caption>Đối chiếu từ các nguồn</caption>
+  <thead><tr><th>Trường</th><th>Gợi ý</th><th>Ứng viên và nguồn</th></tr></thead>
+  <tbody></tbody>
+</table>
+<details><summary>Xem dữ liệu theo vùng và trang</summary><pre id="result"></pre></details>
+<script src="./companion.js" defer></script>
+</body>
+</html>

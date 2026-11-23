@@ -1,0 +1,496 @@
+{
+  "public-13.pdf": {
+    "number": "114/2026/VBHN-TT-BNNMT",
+    "date": "2026-11-17",
+    "subject": "Ban hành Quy chuẩn kỹ thuật Quốc gia về Kiểm dịch và Bảo vệ thực vật",
+    "source": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2026/11/114-vbhn-bnnmt.signed.pdf",
+    "firstPageTextChars": 2540,
+    "pages": 22,
+    "family": "Nhà nước",
+    "sha256": "fcd47203575e2323c3029554dc53ac22b9d6980e9c5e09a3deb6aadb82ce8a9e",
+    "rects": {
+      "number": [
+        0.1435,
+        0.1183,
+        0.4587,
+        0.1368
+      ],
+      "date": [
+        0.5261,
+        0.1276,
+        0.887,
+        0.146
+      ]
+    }
+  },
+  "public-14.pdf": {
+    "number": "22/2026/VBHN-TT-BVHTTDL",
+    "date": "2026-11-17",
+    "subject": "Quy định chi tiết hoạt động hỗ trợ xây dựng gia đình hạnh phúc, phát triển bền vững tại cộng đồng",
+    "source": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2026/11/22-vbhn-bvhttdl.signed.pdf",
+    "firstPageTextChars": 2323,
+    "pages": 5,
+    "family": "Nhà nước",
+    "sha256": "8baac96e9df64c7459d963799fbaec21e050b550236c08d8e49aeda5a7264635",
+    "rects": {
+      "number": [
+        0.1543,
+        0.1214,
+        0.4783,
+        0.143
+      ],
+      "date": [
+        0.5391,
+        0.126,
+        0.9065,
+        0.146
+      ]
+    }
+  },
+  "public-16.pdf": {
+    "number": "11814/VPCP-QHĐP",
+    "date": "2026-11-16",
+    "subject": "V/v tình hình thực hiện các kết luận của lãnh đạo Đảng, Nhà nước tại buổi làm việc với các địa phương",
+    "source": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2026/11/11814_vpcp-qhdp_16112026_2-signed.signed.pdf",
+    "firstPageTextChars": 2984,
+    "pages": 16,
+    "family": "Nhà nước",
+    "sha256": "15907378faf1369bdc81011af38d07ef23a724703f7b3ab443d1d67e07cf2745",
+    "rects": {
+      "number": [
+        0.1761,
+        0.1168,
+        0.4,
+        0.1383
+      ],
+      "date": [
+        0.5152,
+        0.1168,
+        0.8478,
+        0.1383
+      ]
+    }
+  },
+  "public-17.pdf": {
+    "number": "413/2026/NĐ-CP",
+    "date": "2026-11-16",
+    "subject": "Sửa đổi, bổ sung một số điều của Nghị định số 104/2025/NĐ-CP ngày 15 tháng 5 năm 2025 của Chính phủ quy định chi tiết một số điều và biện pháp thi hành Luật Công chứng",
+    "source": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2026/11/413_2026_ndcp_14112026-signed-1-.signed.pdf",
+    "firstPageTextChars": 194,
+    "pages": 26,
+    "family": "Nhà nước",
+    "sha256": "6fc878dbb60d49d366fd988ca3354b4736811d818f81fe9de67782e88c0d682f",
+    "rects": {
+      "number": [
+        0.1957,
+        0.1378,
+        0.4022,
+        0.1577
+      ],
+      "date": [
+        0.5087,
+        0.1363,
+        0.8674,
+        0.1593
+      ]
+    }
+  },
+  "public-19.pdf": {
+    "number": "19/2026/VBHN-TT-BYT",
+    "date": "2026-11-16",
+    "subject": "Quy định thuốc phải thử tương đương sinh học và các yêu cầu đối với hồ sơ báo cáo số liệu nghiên cứu tương đương sinh học trong đăng ký lưu hành thuốc tại Việt Nam",
+    "source": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2026/11/19-vbhn-byt.signed.pdf",
+    "firstPageTextChars": 2884,
+    "pages": 38,
+    "family": "Nhà nước",
+    "sha256": "8cdb9b5f7f6761aa4c3f76306e9ada58b285e9d78a0f9a1a0b78e96e12a156a1",
+    "rects": {
+      "number": [
+        0.1522,
+        0.1137,
+        0.4348,
+        0.1322
+      ],
+      "date": [
+        0.5196,
+        0.1137,
+        0.8739,
+        0.1337
+      ]
+    }
+  },
+  "public-20.pdf": {
+    "number": "19/2026/TT-BTP",
+    "date": "2026-11-16",
+    "subject": "Ban hành Quy chế quản lý chứng chỉ đào tạo, bồi dưỡng của Bộ Tư pháp",
+    "source": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2026/11/19-btp.signed.pdf",
+    "firstPageTextChars": 2095,
+    "pages": 2,
+    "family": "Nhà nước",
+    "sha256": "87549d4ea750c2d97626d76b3c51470e0710b169cbc714ccd7d8154630cd9a1f",
+    "rects": {
+      "number": [
+        0.1522,
+        0.1199,
+        0.3848,
+        0.1399
+      ],
+      "date": [
+        0.5283,
+        0.1199,
+        0.8891,
+        0.1399
+      ]
+    }
+  },
+  "public-22.pdf": {
+    "number": "586/TB-VPCP",
+    "date": "2026-11-15",
+    "subject": "Kết luận của Phó Thủ tướng Thường trực Chính phủ Phạm Gia Túc tại cuộc họp về tiếp thu, giải trình ý kiến của đại biểu Quốc hội và các cơ quan của Quốc hội, ý kiến Thành viên Chính phủ về dự thảo Luật Kinh doanh bất động sản (sửa đổi), Luật Nhà ở (sửa đổi)",
+    "source": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2026/11/586_tb-vpcp_15112026-signed.signed.pdf",
+    "firstPageTextChars": 194,
+    "pages": 3,
+    "family": "Nhà nước",
+    "sha256": "d2ec4eb375209977e58adfbadb22c83495de33ebd9553fb537f96d888432dc41",
+    "rects": {
+      "number": [
+        0.1804,
+        0.1081,
+        0.3891,
+        0.1297
+      ],
+      "date": [
+        0.5043,
+        0.1096,
+        0.863,
+        0.1313
+      ]
+    }
+  },
+  "public-23.pdf": {
+    "number": "46/2026/TT-BYT",
+    "date": "2026-11-15",
+    "subject": "Quy định tiêu chuẩn chất lượng cơ bản đối với cơ sở khám bệnh, chữa bệnh có hình thức tổ chức không phải là bệnh viện",
+    "source": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2026/11/46-byt.signed.pdf",
+    "firstPageTextChars": 1706,
+    "pages": 2,
+    "family": "Nhà nước",
+    "sha256": "71c088a8aacfe27d6e8637add67f4d72d750000b0eabaf02bc812e2618735977",
+    "rects": {
+      "number": [
+        0.1565,
+        0.1245,
+        0.3826,
+        0.1461
+      ],
+      "date": [
+        0.487,
+        0.1261,
+        0.863,
+        0.1476
+      ]
+    }
+  },
+  "public-24.pdf": {
+    "number": "2236/QĐ-TTg",
+    "date": "2026-11-14",
+    "subject": "Phê chuẩn kết quả bầu chức vụ Phó Chủ tịch Ủy ban nhân dân thành phố Đồng Nai nhiệm kỳ 2026 - 2031",
+    "source": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2026/11/2236_qdttg_14112026-signed.signed.pdf",
+    "firstPageTextChars": 194,
+    "pages": 1,
+    "family": "Nhà nước",
+    "sha256": "a5ac852e2ab7e09fa637161541b633746b46f23f1f488324c03937a0a591e7f3",
+    "rects": {
+      "number": [
+        0.1587,
+        0.1276,
+        0.3609,
+        0.1491
+      ],
+      "date": [
+        0.513,
+        0.1306,
+        0.8696,
+        0.1522
+      ]
+    }
+  },
+  "public-38.pdf": {
+    "number": "2217/QĐ-TTg",
+    "date": "2026-11-13",
+    "subject": "Về việc ban hành quy trình vận hành liên hồ chứa trên lưu vực sông Đồng Nai",
+    "source": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2026/11/2217-ttg.signed.pdf",
+    "firstPageTextChars": 1647,
+    "pages": 82,
+    "family": "Nhà nước",
+    "sha256": "04a1dc9e9f50e2d125780fe47764e9272b0a137fab51ce07b98dee8b1c254b85",
+    "rects": {
+      "number": [
+        0.2022,
+        0.1427,
+        0.3761,
+        0.1644
+      ],
+      "date": [
+        0.5022,
+        0.1427,
+        0.837,
+        0.1659
+      ]
+    }
+  },
+  "public-43.pdf": {
+    "number": "2206/QĐ-TTg",
+    "date": "2026-11-13",
+    "subject": "Về việc tổ chức lại Ban Chỉ đạo các công trình trọng điểm lĩnh vực Công Thương và Xây dựng",
+    "source": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2026/11/2206_qdttg_13112026-signed.signed.pdf",
+    "firstPageTextChars": 194,
+    "pages": 7,
+    "family": "Nhà nước",
+    "sha256": "65b40c8f9d8fd8604c4d130f51f730d23dbfd215023bc2c87145d46c354b3128",
+    "rects": {
+      "number": [
+        0.1587,
+        0.1045,
+        0.3652,
+        0.1276
+      ],
+      "date": [
+        0.4978,
+        0.1045,
+        0.8565,
+        0.1291
+      ]
+    }
+  },
+  "public-45.pdf": {
+    "number": "74/CĐ-TTg",
+    "date": "2026-11-13",
+    "subject": "Về khắc phục hậu quả vụ tai nạn giao thông đặc biệt nghiêm trọng trên địa bàn tỉnh Tây Ninh",
+    "source": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2026/11/74_cdttg_13112026_1-signed.signed.pdf",
+    "firstPageTextChars": 2587,
+    "pages": 2,
+    "family": "Nhà nước",
+    "sha256": "be26598dc6f0c6fea18bedf2eb79d94453fcde78097670112e9a4fe8d16084ca",
+    "rects": {
+      "number": [
+        0.2,
+        0.1383,
+        0.3609,
+        0.1582
+      ],
+      "date": [
+        0.5065,
+        0.1367,
+        0.8652,
+        0.1598
+      ]
+    }
+  },
+  "public-46.pdf": {
+    "number": "11627/VPCP-CN",
+    "date": "2026-11-12",
+    "subject": "V/v đầu tư mở rộng các đoạn tuyến cao tốc Bắc - Nam phía Đông",
+    "source": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2026/11/11627_vpcp-cn_12112026_1-signed.signed.pdf",
+    "firstPageTextChars": 1285,
+    "pages": 1,
+    "family": "Nhà nước",
+    "sha256": "b45c1408613a8228d6e56992c5b585408c792f941ac85ad2bba43f237480281c",
+    "rects": {
+      "number": [
+        0.187,
+        0.12,
+        0.3826,
+        0.1384
+      ],
+      "date": [
+        0.5217,
+        0.1184,
+        0.8543,
+        0.1399
+      ]
+    }
+  },
+  "public-47.pdf": {
+    "number": "2476/QĐ-NHNN",
+    "date": "2026-11-12",
+    "subject": "Về việc tiếp tục có hiệu lực của Thông tư số 38/2025/TT-NHNN ban hành Quy chế kiểm soát nội bộ, kiểm toán nội bộ Ngân hàng Nhà nước Việt Nam",
+    "source": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2026/11/2476-nhnn.signed.pdf",
+    "firstPageTextChars": 1964,
+    "pages": 2,
+    "family": "Nhà nước",
+    "sha256": "736fe000c3aceaeff3e416a0cea9f09a412f93dbf87e18bbb5708a05b8043bce",
+    "rects": {
+      "number": [
+        0.1652,
+        0.1044,
+        0.413,
+        0.1289
+      ],
+      "date": [
+        0.4739,
+        0.1028,
+        0.8739,
+        0.1289
+      ]
+    }
+  },
+  "public-48.pdf": {
+    "number": "410/2026/NĐ-CP",
+    "date": "2026-11-12",
+    "subject": "Sửa đổi, bổ sung một số điều của Nghị định số 113/2013/NĐ-CP ngày 02 tháng 10 năm 2013 của Chính phủ về hoạt động mỹ thuật",
+    "source": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2026/11/410_2026_ndcp_12112026-signed.signed.pdf",
+    "firstPageTextChars": 194,
+    "pages": 21,
+    "family": "Nhà nước",
+    "sha256": "2f144b8439b359515835d4f90fb7589a1079536bca69cf7beeaeccbad3b940d1",
+    "rects": {
+      "number": [
+        0.2,
+        0.1429,
+        0.4022,
+        0.1645
+      ],
+      "date": [
+        0.5109,
+        0.1399,
+        0.8652,
+        0.1629
+      ]
+    }
+  },
+  "public-50.pdf": {
+    "number": "70/2026/TT-BKHCN",
+    "date": "2026-11-12",
+    "subject": "Quy định về quan trắc và cảnh báo phóng xạ môi trường",
+    "source": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2026/11/70-bkhcn.signed.pdf",
+    "firstPageTextChars": 2316,
+    "pages": 57,
+    "family": "Nhà nước",
+    "sha256": "bec6470116f51c1fe834a74aacf62d00407924b093f773d77d082b925f6a0bd4",
+    "rects": {
+      "number": [
+        0.1739,
+        0.1183,
+        0.4413,
+        0.1414
+      ],
+      "date": [
+        0.5152,
+        0.1199,
+        0.9,
+        0.1429
+      ]
+    }
+  },
+  "party4-84.pdf": {
+    "number": "84-KH/BTCTW",
+    "date": "2026-11-17",
+    "subject": "Về cao điểm hoàn thành các nhiệm vụ trọng tâm về vị trí việc làm và phương án biên chế giai đoạn 2027 - 2031 (từ ngày 16 đến 30/11/2026)",
+    "source": "https://tulieuvankien.dangcongsan.vn/upload/3000006/20261121/A81-VBNB_2026-KH-0084-2026_dadongdau_2f865.pdf",
+    "family": "Đảng",
+    "sha256": "a4619d8a34cee08d041cf7d37b56fd6c43f71564b7eb6da88f2078807cfc8c16",
+    "rects": {
+      "number": [
+        0.237,
+        0.1245,
+        0.4435,
+        0.1445
+      ],
+      "date": [
+        0.5609,
+        0.1061,
+        0.9174,
+        0.1276
+      ]
+    }
+  },
+  "party4-301.pdf": {
+    "number": "301-TB/BTCTW",
+    "date": "2026-11-17",
+    "subject": "Về việc triển khai một số nhiệm vụ thực hiện Kết luận 107-KL/TW và Hướng dẫn 07-HD/BTCTW",
+    "source": "https://tulieuvankien.dangcongsan.vn/upload/3000006/20261121/A81-VBNB_2026-TB-0301-2026_dadongdau_13525.pdf",
+    "family": "Đảng",
+    "sha256": "e1f5ffa79dd32f5929139f28a395b7588527567fd0ed3b8e4ab48633f734a087",
+    "rects": {
+      "number": [
+        0.2348,
+        0.126,
+        0.4565,
+        0.146
+      ],
+      "date": [
+        0.5674,
+        0.1061,
+        0.9348,
+        0.1291
+      ]
+    }
+  },
+  "party4-2772.pdf": {
+    "number": "2772-CV/BTCTW",
+    "date": "2026-11-13",
+    "subject": "Hướng dẫn kiểm điểm, đánh giá, xếp loại năm 2026",
+    "source": "https://tulieuvankien.dangcongsan.vn/upload/3000006/20261117/Cong-van-2772-CV-BTCTW_d8bdc.pdf",
+    "family": "Đảng",
+    "sha256": "b24f2c5238252fa2df263818c0485f287b03e677a10f60f6375fe3893e21c042",
+    "rects": {
+      "number": [
+        0.2217,
+        0.126,
+        0.4587,
+        0.1476
+      ],
+      "date": [
+        0.5522,
+        0.1076,
+        0.9196,
+        0.1307
+      ]
+    }
+  },
+  "party4-19.pdf": {
+    "number": "19-HD/BTGTW",
+    "date": "2026-11-04",
+    "subject": "Tuyên truyền kỷ niệm 950 năm Quốc Tử Giám - Quốc học Việt Nam (1076 - 2026)",
+    "source": "https://tulieuvankien.dangcongsan.vn/upload/3000006/20261107/HD_19_BTGTW_5d64b.pdf",
+    "family": "Đảng",
+    "sha256": "a6dd5a2dd8e7bc03b11708d9c1ba5aaf0196893914b4b2e752c7553b86d91bc9",
+    "rects": {
+      "number": [
+        0.2304,
+        0.1322,
+        0.4522,
+        0.1537
+      ],
+      "date": [
+        0.5652,
+        0.1122,
+        0.9152,
+        0.1322
+      ]
+    }
+  },
+  "party4-17.pdf": {
+    "number": "17-HD/BTGTW",
+    "date": "2026-10-28",
+    "subject": "Tuyên truyền kỷ niệm 80 năm Hội nghị Văn hóa toàn quốc lần thứ nhất (24/11/1946 - 24/11/2026), Ngày Văn hóa Việt Nam (24/11) và Ngày hội Đại đoàn kết toàn dân tộc (18/11)",
+    "source": "https://tulieuvankien.dangcongsan.vn/upload/3000006/20261029/HD_17_BTGTW_1a2ce.pdf",
+    "family": "Đảng",
+    "sha256": "572b817d093b6ca9406f9e4f13e187d52cf538adbd82bf26525fc9fcaa6d35d2",
+    "rects": {
+      "number": [
+        0.2391,
+        0.1168,
+        0.45,
+        0.1383
+      ],
+      "date": [
+        0.5696,
+        0.0999,
+        0.9217,
+        0.123
+      ]
+    }
+  }
+}
