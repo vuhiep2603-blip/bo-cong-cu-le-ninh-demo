@@ -7,6 +7,10 @@ import pymupdf
 
 from benchmark import text_scores
 from loopback import MAX_BYTES, Server
+from layout import parse_date, parse_number, raster_lines
+from task_layout import candidates
+import cv2
+import numpy as np
 from regions import field_value, reconcile
 from task_sources import proposals, score
 
@@ -32,6 +36,39 @@ class HybridTest(unittest.TestCase):
         self.assertEqual(items[0]["sources"][0]["page"],1)
         result = score([{"excerpt":"1. giao co quan tong hop. Bo sung trich dan.","pages":[1]}],items)
         self.assertEqual(result["f1"],1)
+
+    def test_geometric_columns_and_strict_number(self):
+        image = np.full((1000, 800, 3),255,dtype=np.uint8)
+        cv2.rectangle(image,(95,120),(265,135),(0,0,0),-1)
+        cv2.rectangle(image,(440,120),(725,135),(0,0,0),-1)
+        lines = list(raster_lines(image))
+        self.assertEqual(len(lines),2)
+        self.assertLess(lines[0][0][2],lines[1][0][0])
+        self.assertEqual(parse_number("S ố : 84 - KH/BTCTW")["serial"],"84")
+        self.assertIsNone(parse_number("Số: 658-QĐ/TW thêm chữ"))
+        self.assertIsNone(parse_date("Hà Nội, ngày 43 tháng 11 năm 2026"))
+
+    def test_widget_appearance_is_separate_from_page_body(self):
+        with pymupdf.open() as pdf:
+            page = pdf.new_page()
+            widget = pymupdf.Widget()
+            widget.field_name = "overlay"
+            widget.field_type = pymupdf.PDF_WIDGET_TYPE_TEXT
+            widget.field_value = "114"
+            widget.rect = pymupdf.Rect(76,100,104,117)
+            page.add_widget(widget)
+            off = page.get_pixmap(annots=False)
+            on = page.get_pixmap(annots=True)
+            self.assertNotEqual(off.samples,on.samples)
+
+    def test_task_continuation_records_both_pages(self):
+        with pymupdf.open() as pdf:
+            page = pdf.new_page()
+            page.insert_text((70,100),"1. Bao cao va giao co quan.")
+            pdf.new_page().insert_text((70,100),"Hoan thien theo de an.")
+            tasks = candidates(pdf)
+            self.assertEqual({s["page"] for s in tasks[0]["sources"]},{1,2})
+            self.assertTrue(tasks[0]["requiresHumanAssignment"])
 
     def test_loopback_guards_and_success(self):
         with pymupdf.open() as pdf:

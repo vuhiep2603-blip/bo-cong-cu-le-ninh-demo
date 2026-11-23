@@ -16,12 +16,18 @@ class Native:
         self.executable = executable
 
     def __call__(self, rgb):
+        return self.recognize(rgb)
+
+    def recognize(self,rgb,*,whitelist=None):
         ok, png = cv2.imencode(".png", cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR))
         if not ok:
             raise ValueError("PNG encoding failed")
+        command = [self.executable, "stdin", "stdout", "--tessdata-dir", str(self.directory),
+                   "-l", "vie", "--oem", "1", "--psm", "7"]
+        if whitelist:
+            command.extend(["-c",f"tessedit_char_whitelist={whitelist}"])
         result = subprocess.run(
-            [self.executable, "stdin", "stdout", "--tessdata-dir", str(self.directory),
-             "-l", "vie", "--oem", "1", "--psm", "7"],
+            command,
             input=png.tobytes(), capture_output=True, check=True, timeout=20,
             env={**os.environ, "OMP_THREAD_LIMIT": "1"},
         )

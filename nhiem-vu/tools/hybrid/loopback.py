@@ -4,11 +4,13 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 from pathlib import Path
 import secrets
+import webbrowser
 from subprocess import SubprocessError
 
 import pymupdf
 
-from engines import engine_options, load_engines
+from engines import engine_options
+from isolated import process_pdf
 from regions import analyze, reconcile
 
 HOST = "127.0.0.1"
@@ -74,9 +76,7 @@ class Handler(BaseHTTPRequestHandler):
             data = self.rfile.read(size)
             if len(data) != size or not data.startswith(b"%PDF-"):
                 return self.reply(400)
-            with pymupdf.open(stream=data, filetype="pdf") as pdf:
-                regions = analyze(pdf, self.server.engines)
-                payload = {"fields":reconcile(regions, self.server.engines), "regions":regions}
+            payload = self.server.recognize(data)
             self.reply(200, json.dumps(payload, ensure_ascii=False).encode("utf-8"), "application/json; charset=utf-8")
         except (ConnectionError, TimeoutError):
             self.close_connection = True
@@ -85,14 +85,19 @@ class Handler(BaseHTTPRequestHandler):
 
 
 class Server(HTTPServer):
-    def __init__(self, engines):
+    def __init__(self, engines=None, *, recognize=None):
         pymupdf.TOOLS.mupdf_display_errors(False)
         pymupdf.TOOLS.mupdf_display_warnings(False)
         super().__init__((HOST, 0), Handler)
         self.authority = f"{HOST}:{self.server_port}"
         self.origin = f"http://{self.authority}"
         self.token = secrets.token_urlsafe(32)
-        self.engines = engines
+        if recognize is None:
+            def recognize(data):
+                with pymupdf.open(stream=data, filetype="pdf") as pdf:
+                    regions = analyze(pdf, engines)
+                    return {"fields":reconcile(regions, engines), "regions":regions}
+        self.recognize = recognize
 
     def handle_error(self, request, client_address):
         pass
@@ -101,9 +106,18 @@ class Server(HTTPServer):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     engine_options(parser)
+    parser.add_argument("--open",action="store_true")
     args = parser.parse_args()
-    with Server(load_engines(args)) as server:
-        print(f"Open locally (session URL): {server.origin}/#{server.token}", flush=True)
+    options = []
+    for key in ("tessdata","tesseract","vietocr","paddle"):
+        value = getattr(args,key)
+        if value:
+            options.extend(["--"+key,value])
+    with Server(recognize=lambda data:process_pdf(data,options)) as server:
+        url = f"{server.origin}/#{server.token}"
+        print(f"Open locally (session URL): {url}",flush=True)
+        if args.open:
+            webbrowser.open(url)
         try:
             server.serve_forever()
         except KeyboardInterrupt:

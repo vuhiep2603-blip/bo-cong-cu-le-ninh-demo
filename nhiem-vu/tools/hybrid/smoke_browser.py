@@ -45,7 +45,7 @@ def main():
                 page.click("button")
                 expect(page.locator("#status")).to_contain_text("Đã đọc vùng đầu trang.",timeout=120_000)
                 if args.expected_number:
-                    result = json.loads(page.locator("#result").inner_text())
+                    result = json.loads(page.locator("#result").text_content())
                     assert args.expected_number in result["fields"]["number"]["candidates"]
                 assert "#" not in page.url
                 assert requests and all(request.startswith(origin+"/") for request in requests)

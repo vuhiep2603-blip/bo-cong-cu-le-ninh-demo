@@ -9,7 +9,12 @@
   <button>Đọc vùng đầu trang</button>
 </form>
 <p id="status" role="status"></p>
-<pre id="result"></pre>
+<table id="fields" hidden>
+  <caption>Đối chiếu từ các nguồn</caption>
+  <thead><tr><th>Trường</th><th>Gợi ý</th><th>Ứng viên và nguồn</th></tr></thead>
+  <tbody></tbody>
+</table>
+<details><summary>Xem dữ liệu theo vùng và trang</summary><pre id="result"></pre></details>
 <script src="./companion.js" defer></script>
 </body>
 </html>

@@ -104,7 +104,7 @@ def proposals(pdf):
     return output
 
 
-def score(expected, predicted):
+def match_tasks(expected,predicted):
     pairs = []
     for i, reference in enumerate(expected):
         for j, prediction in enumerate(predicted):
@@ -121,6 +121,11 @@ def score(expected, predicted):
         if i not in matches and j not in matched_predictions:
             matches[i] = j
             matched_predictions.add(j)
+    return matches
+
+
+def score(expected,predicted):
+    matches = match_tasks(expected,predicted)
     tp = len(matches)
     precision = tp / len(predicted) if predicted else None
     recall = tp / len(expected) if expected else None
