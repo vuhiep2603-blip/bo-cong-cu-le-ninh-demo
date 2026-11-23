@@ -68,6 +68,16 @@ assert all(run.font.name=='Times New Roman' for p in heading_paragraphs for run 
 word_body='\n'.join(cell.text for row in word.tables[1].rows for cell in row.cells)
 assert 'Lịch đã chỉnh sửa tiếng Việt' in word_body
 assert 'Hoạt động nhập từ biểu mẫu' in word_body
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+activity_paragraphs=[p for row in word.tables[1].rows for p in row.cells[1].paragraphs
+                     if p.text.strip().startswith('-')]
+assert activity_paragraphs
+assert all(p.alignment==WD_ALIGN_PARAGRAPH.JUSTIFY for p in activity_paragraphs)
+for row in word.tables[1].rows:
+ for p in row.cells[0].paragraphs:
+  assert p.alignment==WD_ALIGN_PARAGRAPH.CENTER
+print('PASS schedule activity paragraphs justified; day column centered')
+
 with ZipFile(out/'schedule-word.docx') as z:assert not any(n.startswith('word/media/') for n in z.namelist())
 backup=json.loads((out/'schedule-backup.json').read_text());assert backup['format']=='le-ninh-local-backup' and backup['version']==1
 # Frozen baseline digests avoid depending on an unpublished historical commit.
