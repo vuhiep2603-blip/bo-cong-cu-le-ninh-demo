@@ -1,0 +1,28 @@
+{
+  "public-10.pdf": {
+    "number": "11857/VPCP-KGVX",
+    "date": "2026-11-17",
+    "subject": "V/v trình Chủ tịch nước tặng quà cho người có công với cách mạng nhân dịp Tết Nguyên đán Đinh Mùi năm 2027",
+    "source": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2026/11/11857_vpcp-kgvx_17112026_1-signed.signed.pdf",
+    "firstPageTextChars": 1604,
+    "pages": 1,
+    "issuer": "State",
+    "split": "development",
+    "tasks": [
+      {
+        "excerpt": "Ủy quyền Bộ trưởng Bộ Nội vụ trình Chủ tịch nước về việc tặng quà cho người có công với cách mạng nhân dịp Tết Nguyên đán Đinh Mùi năm 2027.",
+        "lead": "Bộ trưởng Bộ Nội vụ",
+        "pages": [
+          1
+        ]
+      },
+      {
+        "excerpt": "Bộ Nội vụ chịu trách nhiệm toàn diện về nội dung, số liệu báo cáo; bảo đảm đúng mục đích, đúng đối tượng, đúng quy định pháp luật, không để xảy ra tiêu cực, lãng phí trong quá trình tổ chức thực hiện.",
+        "lead": "Bộ Nội vụ",
+        "pages": [
+          1
+        ]
+      }
+    ]
+  }
+}

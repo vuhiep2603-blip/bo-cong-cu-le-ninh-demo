@@ -1,0 +1,232 @@
+{
+  "public-04.pdf": {
+    "number": "415/2026/NĐ-CP",
+    "date": "2026-11-19",
+    "subject": "Quy định xử phạt vi phạm hành chính trong lĩnh vực khoa học và công nghệ",
+    "source": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2026/11/415_2026_ndcp_19112026_1-signed.signed.pdf",
+    "firstPageTextChars": 1960,
+    "pages": 77,
+    "issuer": "State",
+    "split": "development",
+    "regions": [
+      {
+        "field": "number",
+        "page": 1,
+        "rect": [
+          0.178,
+          0.123,
+          0.392,
+          0.147
+        ],
+        "transcript": "Số: 415/2026/NĐ-CP"
+      },
+      {
+        "field": "date",
+        "page": 1,
+        "rect": [
+          0.483,
+          0.12,
+          0.851,
+          0.145
+        ],
+        "transcript": "Hà Nội, ngày 19 tháng 11 năm 2026"
+      },
+      {
+        "field": "subject",
+        "page": 1,
+        "rect": [
+          0.257,
+          0.198,
+          0.814,
+          0.223
+        ],
+        "transcript": "Quy định xử phạt vi phạm hành chính trong lĩnh vực"
+      }
+    ],
+    "sha256": "01486acd57c0170de4b8e78e6c4f14a836e4d579d51a0dcc9fbd6b879984708e"
+  },
+  "public-07.pdf": {
+    "number": "71/2026/TT-BCT",
+    "date": "2026-11-19",
+    "subject": "Quy định tiêu chí phân loại, phân hạng trung tâm logistics",
+    "source": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2026/11/71-bct.signed.pdf",
+    "firstPageTextChars": 1709,
+    "pages": 10,
+    "issuer": "State",
+    "split": "holdout",
+    "regions": [
+      {
+        "field": "number",
+        "page": 1,
+        "rect": [
+          0.131,
+          0.124,
+          0.411,
+          0.15
+        ],
+        "transcript": "Số: 71/2026/TT-BCT"
+      },
+      {
+        "field": "date",
+        "page": 1,
+        "rect": [
+          0.477,
+          0.124,
+          0.874,
+          0.151
+        ],
+        "transcript": "Hà Nội, ngày 19 tháng 11 năm 2026"
+      },
+      {
+        "field": "subject",
+        "page": 1,
+        "rect": [
+          0.219,
+          0.211,
+          0.84,
+          0.237
+        ],
+        "transcript": "Quy định tiêu chí phân loại, phân hạng trung tâm logistics"
+      }
+    ],
+    "sha256": "ca8cd5a4952f9310ae96ce65189343a35c5c42a5e328dd872068b677d09a6894"
+  },
+  "public-08.pdf": {
+    "number": "2279/QĐ-TTg",
+    "date": "2026-11-18",
+    "subject": "Phê duyệt Đề án tổng thể “Xây dựng, vận hành Nền tảng số quốc gia về lưu trữ giai đoạn 2026 - 2030”",
+    "source": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2026/11/2279_qdttg_18112026_2-signed.signed.pdf",
+    "firstPageTextChars": 1899,
+    "pages": 18,
+    "issuer": "State",
+    "split": "holdout",
+    "regions": [
+      {
+        "field": "number",
+        "page": 1,
+        "rect": [
+          0.181,
+          0.103,
+          0.366,
+          0.127
+        ],
+        "transcript": "Số: 2279/QĐ-TTg"
+      },
+      {
+        "field": "date",
+        "page": 1,
+        "rect": [
+          0.471,
+          0.103,
+          0.839,
+          0.129
+        ],
+        "transcript": "Hà Nội, ngày 18 tháng 11 năm 2026"
+      },
+      {
+        "field": "subject",
+        "page": 1,
+        "rect": [
+          0.214,
+          0.198,
+          0.84,
+          0.223
+        ],
+        "transcript": "Phê duyệt Đề án tổng thể “Xây dựng, vận hành Nền tảng số"
+      }
+    ],
+    "sha256": "5d9c524bf682c4aa66874b9c714f439b0b002c73464123720b0298beefd535ed"
+  },
+  "public-10.pdf": {
+    "number": "11857/VPCP-KGVX",
+    "date": "2026-11-17",
+    "subject": "V/v trình Chủ tịch nước tặng quà cho người có công với cách mạng nhân dịp Tết Nguyên đán Đinh Mùi năm 2027",
+    "source": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2026/11/11857_vpcp-kgvx_17112026_1-signed.signed.pdf",
+    "firstPageTextChars": 1604,
+    "pages": 1,
+    "issuer": "State",
+    "split": "holdout",
+    "regions": [
+      {
+        "field": "number",
+        "page": 1,
+        "rect": [
+          0.16,
+          0.119,
+          0.421,
+          0.144
+        ],
+        "transcript": "Số: 11857/VPCP-KGVX"
+      },
+      {
+        "field": "date",
+        "page": 1,
+        "rect": [
+          0.524,
+          0.117,
+          0.867,
+          0.141
+        ],
+        "transcript": "Hà Nội, ngày 17 tháng 11 năm 2026"
+      },
+      {
+        "field": "subject",
+        "page": 1,
+        "rect": [
+          0.129,
+          0.143,
+          0.459,
+          0.166
+        ],
+        "transcript": "V/v trình Chủ tịch nước tặng quà cho"
+      }
+    ],
+    "sha256": "efd1fa7f767bf28dbb403225138d21388409517391b3650ec473658f4c95c33f"
+  },
+  "public-12.pdf": {
+    "number": "115/2026/VBHN-TT-BNNMT",
+    "date": "2026-11-17",
+    "subject": "Ban hành Quy chuẩn kỹ thuật Quốc gia về Kiểm dịch và Bảo vệ thực vật",
+    "source": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2026/11/115-vbhn-bnnmt.signed.pdf",
+    "firstPageTextChars": 2288,
+    "pages": 66,
+    "issuer": "State",
+    "split": "holdout",
+    "regions": [
+      {
+        "field": "number",
+        "page": 1,
+        "rect": [
+          0.126,
+          0.128,
+          0.462,
+          0.153
+        ],
+        "transcript": "Số: 115/2026/VBHN-TT-BNNMT"
+      },
+      {
+        "field": "date",
+        "page": 1,
+        "rect": [
+          0.509,
+          0.138,
+          0.888,
+          0.163
+        ],
+        "transcript": "Hà Nội, ngày 17 tháng 11 năm 2026"
+      },
+      {
+        "field": "subject",
+        "page": 1,
+        "rect": [
+          0.157,
+          0.209,
+          0.915,
+          0.235
+        ],
+        "transcript": "Ban hành Quy chuẩn kỹ thuật Quốc gia về Kiểm dịch và Bảo vệ thực vật"
+      }
+    ],
+    "sha256": "1b09cb0ebf5b92be9fd93338ee35bfe5139b92dcf141b3a7326c3d5a12238672"
+  }
+}

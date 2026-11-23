@@ -1,0 +1,6 @@
+numpy==2.5.5
+opencv-python-headless==5.1.0.95
+PyMuPDF==1.26.6
+onnxruntime==1.32.0
+psutil==7.2.2
+playwright==1.62.0
