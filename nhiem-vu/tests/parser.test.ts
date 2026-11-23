@@ -1,7 +1,7 @@
 import {expect,test} from 'vitest';
 import {localDay,isLate} from '../src/model';
 import type {Task} from '../src/model';
-import {extractDocumentHeader,ruleAnalyzer,reconcileHeaders,isSparsePdfPage} from '../src/parser';
+import {extractDocumentHeader,ruleAnalyzer,reconcileHeaders,isSparsePdfPage,analyzeDocument} from '../src/parser';
 import {reconstructPageLines} from '../src/pdf-layout';
 import {extractTaskProposals} from '../src/task-extraction';
 
@@ -208,4 +208,44 @@ test('identify image-only PDF pages despite embedded whitespace and ignore norma
  expect(isSparsePdfPage('   \n \t    ')).toBe(true);
  expect(isSparsePdfPage(('Nội dung văn bản đầy đủ có lớp chữ tiếng Việt ').repeat(6))).toBe(false);
  expect(isSparsePdfPage('Ký số điện tử\nNgười ký: VP\n')).toBe(true);
+});
+
+test('leaves conflicting document number and date empty and exposes both readings',async()=>{
+ const result=await analyzeDocument({rows:[],headers:[
+  {origin:'PDF',page:1,region:'đầu trang',excerpt:'Số: 31/CT-TTg',header:{number:'31/CT-TTg',documentDate:'2026-11-23',subject:'Công tác tháng 11'}},
+  {origin:'OCR',page:1,region:'vùng số',confidence:79,excerpt:'Số: 34/CT-TTg',header:{number:'34/CT-TTg',documentDate:'2026-11-24',subject:'Công tác tháng 11'}}
+ ]});
+ expect(result.source.number).toBe('');
+ expect(result.documentDate).toBe('');
+ expect(result.readings?.map(reading=>reading.header.number)).toEqual(['31/CT-TTg','34/CT-TTg']);
+});
+test('layout tables keep the same task across pages with repeated headers',async()=>{
+ const row=(page:number,entries:[number,string][])=>({origin:'PDF' as const,page,cells:entries.map(([x,text])=>({x,text}))});
+ const heading:[[number,string],[number,string],[number,string],[number,string]]=[[10,'STT'],[120,'Nội dung'],[540,'Chủ trì'],[810,'Sản phẩm']];
+ const result=await analyzeDocument({headers:[],rows:[
+  row(1,heading),row(1,[[10,'1'],[120,'Lập báo cáo'],[540,'Văn phòng Đảng ủy']]),
+  row(2,heading),row(2,[[120,'và đối chiếu số liệu'],[810,'Báo cáo quý']]),
+  row(2,[[10,'2'],[120,'Hoàn thành quy trình'],[540,'Ban Tổ chức']])
+ ]});
+ expect(result.proposals).toHaveLength(2);
+ expect(result.proposals[0]).toMatchObject({detail:'Lập báo cáo và đối chiếu số liệu',pages:[1,2],deliverable:'Báo cáo quý',relevance:'direct'});
+ expect(result.proposals[1].lead).toBe('Ban Tổ chức');
+});
+test('keeps ordinal task clauses and subordinate bullets without guessing a recurring date',()=>{
+ const out=extractTaskProposals('Một là, Văn phòng Đảng ủy chủ trì tổng hợp báo cáo.\n- Tham mưu trình lãnh đạo.\nThời hạn: Hằng quý\nHai là, Ban Tổ chức rà soát hồ sơ và tài liệu.');
+ expect(out).toHaveLength(2);
+ expect(out[0]).toMatchObject({section:'Một là,',deadlineText:'Hằng quý',deadline:''});
+ expect(out[0].detail).toContain('Tham mưu trình lãnh đạo.');
+});
+test('long summaries are preserved, while a body dateline cannot supply issue date',()=>{
+ const subject='Tăng cường công tác tổng hợp và báo cáo, '.repeat(12)+'quý IV năm 2026';
+ const header=extractDocumentHeader('Số: 12/TB-ĐU\nTHÔNG BÁO\n'+subject+'\nNgày 23 tháng 11 năm 2026, tại trụ sở diễn ra cuộc họp.');
+ expect(header.subject).toBe(subject);
+ expect(header.documentDate).toBe('');
+});
+
+test('statutory heading starts the operative body even when its verb differs from task keywords',()=>{
+ const out=extractTaskProposals('BAN CHỈ ĐẠO TRUNG ƯƠNG\nTHỰC HIỆN CHƯƠNG TRÌNH MỤC TIÊU\nQUYẾT ĐỊNH\nBan Chỉ đạo thực hiện chương trình hằng năm.\nĐiều 1. Ban hành kèm theo Quyết định này\nchương trình và kế hoạch triển khai.');
+ expect(out).toHaveLength(1);
+ expect(out[0].section).toBe('Điều 1.');
 });

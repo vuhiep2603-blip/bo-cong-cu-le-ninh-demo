@@ -5,7 +5,10 @@ import {Timestamp} from 'firebase/firestore';
 import {watchUsers,watchTasks,watchHistory,createTask,changeTask,addUser,editUser} from './backend';
 import {actions,isLate,roles,stages,statuses} from './model';
 import type {Action,Event,Profile,Role,Stage,Task} from './model';
-import {readDocument,ruleAnalyzer,reconcileHeaders} from './parser';
+import {readDocument,analyzeDocument,retryDocumentOcr} from './parser';
+import type {OcrZone,ReadResult} from './parser';
+import {DocumentPreview} from './document-preview';
+import type {PreviewFocus} from './document-preview';
 import type {Analysis,Proposal} from './parser';
 import {AuthGate} from './auth-gate';
 import {Header,Notice,message,useAction} from './ui';
@@ -70,6 +73,9 @@ function TaskList({tasks,users,select,summary}:{tasks:Task[];users:Profile[];sel
  </section></>;
 }
 function Assignment({users,profile}:{users:Profile[];profile:Profile}) {
+ const [input,setInput]=useState<{file:File;result:ReadResult}>();
+ const [focus,setFocus]=useState<PreviewFocus>({page:1});
+ const [relevance,setRelevance]=useState<Proposal['relevance']|''>('');
  const [analysis,setAnalysis]=useState<Analysis>({source:{number:'',subject:''},documentDate:'',proposals:[]});
  const [draft,setDraft]=useState<Proposal>(blankProposal),[selected,setSelected]=useState<number[]>([]);
  const [activeIndex,setActiveIndex]=useState<number|null>(null);
@@ -92,7 +98,11 @@ function Assignment({users,profile}:{users:Profile[];profile:Profile}) {
  function mergeSelected() {
   const items=analysis.proposals.filter((_,i)=>selected.includes(i));
   if (items.length<2) return;
-  const combined={...items[0],detail:items.map(p=>p.detail).join('\n'),excerpt:items.map(p=>p.excerpt).join('\n\n')};
+  const agree=(key:'lead'|'partners'|'deadline'|'deliverable')=>
+    items.every(item=>item[key]===items[0][key])?items[0][key]:'';
+  const combined={...items[0],detail:items.map(p=>p.detail).join('\n'),excerpt:items.map(p=>p.excerpt).join('\n\n'),
+    lead:agree('lead'),partners:agree('partners'),deadline:agree('deadline'),deliverable:agree('deliverable'),
+    deadlineText:undefined,origin:undefined,confidence:undefined,section:undefined,pages:[...new Set(items.flatMap(p=>p.pages??[]))]};
   const proposals=analysis.proposals.filter((_,i)=>!selected.includes(i));
   proposals.push(combined);
   setAnalysis(a=>({...a,proposals}));setSelected([]);useProposal(combined,proposals.length-1);
@@ -109,43 +119,83 @@ function Assignment({users,profile}:{users:Profile[];profile:Profile}) {
   void action.run(async()=>{
    if (![draft.title,draft.detail,draft.deliverable].every(value=>value.trim())) throw Error('Điền tiêu đề, nội dung và sản phẩm.');
    const assignees=[lead,...partners.filter(uid=>uid!==lead)];
+   if(associate&&analysis.source.subject.length>300)throw Error('Trích yếu nguồn dài hơn giới hạn lưu 300 ký tự. Rút gọn có kiểm soát hoặc bỏ chọn lưu thông tin nguồn.');
    const id=await createTask({title:draft.title.trim(),detail:draft.detail.trim(),deadline:draft.deadline,
     deliverable:draft.deliverable.trim(),leadUid:lead,assignees},profile.uid,associate?analysis.source:undefined);
    if(activeIndex!==null) setAnalysis(a=>({...a,proposals:a.proposals.filter((_,i)=>i!==activeIndex)}));
    setDraft(blankProposal);setActiveIndex(null);setLead('');setPartners([]);setSelected([]);setAssociate(false);setDone('Đã duyệt và giao '+id+'.');
   });
  }
+ function reread(zone:OcrZone) {
+  if(!input)return;
+  void action.run(async()=>{
+    setDone('Đang OCR lại trang '+focus.page+'…');
+    const retry=await retryDocumentOcr(input.file,focus.page,zone);
+    const analyzed=await analyzeDocument({rows:retry.rows,headers:retry.header?[retry.header]:[]});
+    setAnalysis(current=>{
+      const seen=new Set(current.proposals.map(p=>p.detail.toLocaleLowerCase('vi').replace(/\s+/g,' ').trim()));
+      const additional=analyzed.proposals.filter(p=>!seen.has(p.detail.toLocaleLowerCase('vi').replace(/\s+/g,' ').trim()));
+      return {...current,proposals:[...current.proposals,...additional],
+        readings:[...current.readings??[],...analyzed.readings??[]]};
+    });
+    setDone('Đã OCR lại vùng chọn. Đối chiếu kết quả bổ sung với bản gốc; các giá trị đang chỉnh được giữ nguyên.');
+  });
+ }
+ const identified=Boolean(analysis.source.number||analysis.source.subject||analysis.documentDate||analysis.proposals.length);
+ const conflicts=(['number','documentDate'] as const).some(key=>{
+  const candidates=[...new Set(analysis.readings?.map(entry=>entry.header[key]).filter(Boolean))];
+  return candidates.length>1;
+ });
+ const documentStatus=!identified?'Chưa nhận diện được':conflicts?'Có xung đột':
+  !analysis.source.number||!analysis.source.subject||!analysis.documentDate||input?.result.notice?'Đọc được một phần':'Đã đọc đủ trường cơ bản — chờ đối chiếu';
  return <div className="columns"><section className="panel"><h3>Đọc văn bản</h3>
-  <label>Tệp DOCX hoặc PDF (hỗ trợ OCR trang đầu khi thiếu dữ liệu)<input type="file" accept=".docx,.pdf" disabled={action.busy} onChange={e=>{
+  <label>Tệp DOCX hoặc PDF (có hỗ trợ OCR)<input type="file" accept=".docx,.pdf" disabled={action.busy} onChange={e=>{
    const file=e.currentTarget.files?.[0];e.currentTarget.value='';
    if(file) void action.run(async()=>{
-    setFileInfo(file.name);
+    setFileInfo(file.name);setInput(undefined);setFocus({page:1});
+    setAnalysis({source:{number:'',subject:''},documentDate:'',proposals:[]});
+    setActiveIndex(null);setDraft(blankProposal);setSelected([]);setLead('');setPartners([]);setAssociate(false);
     setDone('Đang đọc nội dung tệp...');
     const extracted=await readDocument(file,(label)=>setDone(label));
-    const result=await ruleAnalyzer.analyze(extracted.text);
-    let conflictNotice='';
-    const scanNumberOnly=Boolean(extracted.ocrHeader?.number && !result.source.number);
-    if(scanNumberOnly) conflictNotice='Số, ký hiệu do OCR đọc từ ảnh, CHƯA XÁC MINH. Các chữ số in mờ có thể bị nhầm (ví dụ 31 thành 34); bắt buộc đối chiếu trực tiếp trang đầu trước khi giao nhiệm vụ.';
-    if(extracted.ocrHeader) {
-      const merged=reconcileHeaders({...result.source,documentDate:result.documentDate},extracted.ocrHeader);
-      result.source.number=merged.number;
-      result.source.subject=merged.subject;
-      result.documentDate=merged.documentDate;
-      if(merged.conflicts.length) conflictNotice='PDF và OCR cho kết quả khác nhau ở: '+merged.conflicts.join(', ')+'. Vui lòng đối chiếu bản gốc.';
-    }
+    const result=await analyzeDocument(extracted);
+    setInput({file,result:extracted});
+    const conflictNotice=result.readings?.some(reading=>reading.origin==='OCR')
+      ?'Có kết quả OCR. Kiểm tra các giá trị ứng viên trước khi lưu; trường số hoặc ngày xung đột được để trống.'
+      :'';
+    setRelevance('');
     setAnalysis(result);setSelected([]);setActiveIndex(null);setDraft(blankProposal);setLead('');setPartners([]);setAssociate(true);
     setDone([extracted.notice,conflictNotice,!result.proposals.length?'Chưa nhận diện được nhiệm vụ từ nội dung tệp. Hãy kiểm tra và nhập thủ công nếu cần.':''].filter(Boolean).join(' '));
    });
   }}/><small>Tệp vừa đọc: {fileInfo||"Chưa chọn tệp"}</small></label>
+    {input&&<p role="status" className="info">{documentStatus}</p>}
+  {input?.result.pageCount&&<DocumentPreview file={input.file} pageCount={input.result.pageCount} focus={focus}
+    selectPage={setFocus} onRetry={reread} busy={action.busy}/>}
   <div className="fields"><label>Số, ký hiệu<input maxLength={120} value={analysis.source.number} onChange={e=>setAnalysis(a=>({...a,source:{...a.source,number:e.target.value}}))}/></label>
   <label>Ngày ban hành<input type="date" value={analysis.documentDate} onChange={e=>setAnalysis(a=>({...a,documentDate:e.target.value}))}/></label>
-  <label>Trích yếu<textarea rows={4} maxLength={600} value={analysis.source.subject} onChange={e=>setAnalysis(a=>({...a,source:{...a.source,subject:e.target.value}}))}/></label></div>
+  <label>Trích yếu<textarea aria-label="Trích yếu" rows={4} value={analysis.source.subject} onChange={e=>setAnalysis(a=>({...a,source:{...a.source,subject:e.target.value}}))}/></label></div>
   <p className="muted">Số, ngày ban hành và trích yếu là thông tin gợi ý, cần kiểm tra với văn bản gốc trước khi giao việc. Ngày ban hành chưa được lưu trong Firestore.</p>
   {!analysis.documentDate&&analysis.source.number&&<p role="status" className="info">Chưa đọc được ngày ban hành. Tệp PDF có thể bị thiếu chữ số ngày trong lớp văn bản hoặc ngày được chèn dưới dạng ảnh. Hãy xem trang đầu và nhập ngày thủ công; không lấy ngày từ nội dung, số hiệu hay tên tệp.</p>}
   {!analysis.source.number&&analysis.source.subject&&<p role="status" className="info">Chưa xác định được số, ký hiệu từ tệp. Vui lòng đối chiếu trang đầu văn bản.</p>}
-  <ul className="proposals">{analysis.proposals.map((p,i)=><li key={i}>
+  {Boolean(analysis.readings?.length)&&<details><summary>Thông tin hành chính và nguồn nhận diện</summary>
+    {analysis.readings?.map((reading,index)=><section key={index}>
+      <h4>{reading.origin} · {reading.region}{reading.confidence!==undefined?' · điểm OCR '+Math.round(reading.confidence)+(reading.confidence<85?' (cần kiểm tra)':''):''}</h4>
+      <dl>{reading.fields?.map(field=><div key={field.label}>
+        <dt>{field.label}</dt><dd>{field.page?<button type="button" className="link" onClick={()=>setFocus({page:field.page!,y:field.y,
+          zone:field.label==='Số, ký hiệu'?'left':field.label==='Ngày ban hành'?'right':'header'})}>{field.value}</button>:field.value}
+        {field.page?' · trang '+field.page:''}{field.region?' · '+field.region:''}</dd>
+      </div>)}</dl>
+      {reading.header.number&&<button type="button" onClick={()=>setAnalysis(current=>({...current,source:{...current.source,number:reading.header.number}}))}>Dùng số {reading.header.number}</button>}
+      {reading.header.documentDate&&<button type="button" onClick={()=>setAnalysis(current=>({...current,documentDate:reading.header.documentDate}))}>Dùng ngày {reading.header.documentDate}</button>}
+      {reading.header.subject&&<button type="button" onClick={()=>setAnalysis(current=>({...current,source:{...current.source,subject:reading.header.subject}}))}>Dùng trích yếu này</button>}
+      <blockquote>{reading.excerpt}</blockquote>
+    </section>)}
+  </details>}
+  <label>Mức liên quan<select value={relevance} onChange={event=>setRelevance(event.target.value as typeof relevance)}>
+    <option value="">Tất cả</option><option value="direct">Liên quan trực tiếp</option><option value="indirect">Cần tham mưu, tổng hợp, theo dõi hoặc đôn đốc</option><option value="coordination">Cần phối hợp</option><option value="unknown">Chưa xác định</option>
+  </select></label>
+  <ul className="proposals">{analysis.proposals.map((p,i)=>(!relevance||p.relevance===relevance)&&<li key={i}>
    <input type="checkbox" aria-label={'Chọn đề xuất '+(i+1)} checked={selected.includes(i)} onChange={e=>setSelected(x=>e.target.checked?[...x,i]:x.filter(n=>n!==i))}/>
-   <button type="button" className="link" onClick={()=>useProposal(p,i)}>{p.title}</button>
+   <button type="button" className="link" onClick={()=>{useProposal(p,i);if(p.pages?.[0])setFocus({page:p.pages[0],y:p.y});}}>{p.title}</button>
   </li>)}</ul>
   <div className="buttons"><button disabled={selected.length<2} onClick={mergeSelected}>Gộp đề xuất</button>
    <button disabled={!selected.length} onClick={removeSelected}>Loại bỏ đề xuất</button>
@@ -154,7 +204,10 @@ function Assignment({users,profile}:{users:Profile[];profile:Profile}) {
   <Notice text={action.error}/>{done&&<p role="status" className="info">{done}</p>}
   <form onSubmit={submit}>
    {draft.excerpt&&<details open><summary>Đoạn văn bản nguồn</summary><blockquote>{draft.excerpt}</blockquote>
-    <p>Chủ trì gợi ý: {draft.lead||'—'} · Phối hợp gợi ý: {draft.partners||'—'}</p></details>}
+    <p>{[draft.section,draft.pages?.length?'Trang '+draft.pages.join(', '):'',draft.origin,draft.confidence!==undefined?'OCR '+Math.round(draft.confidence)+'%':''].filter(Boolean).join(' · ')}</p>
+    <p>Căn cứ: {[analysis.source.number,analysis.documentDate].filter(Boolean).join(' · ')||'Chưa xác định'}</p>
+    {draft.deadlineText&&!draft.deadline&&<p>Thời hạn trong nguồn: {draft.deadlineText}</p>}
+    <p>Chủ trì theo văn bản: {draft.lead||'Chưa xác định'} · Phối hợp theo văn bản: {draft.partners||'Chưa xác định'}</p></details>}
    <label>Tên nhiệm vụ<input required maxLength={240} value={draft.title} onChange={e=>updateDraft('title',e.target.value)}/></label>
    <label>Nội dung<textarea required maxLength={8000} rows={5} value={draft.detail} onChange={e=>updateDraft('detail',e.target.value)}/></label>
    <button type="button" disabled={draft.detail.split(/\n+/).filter(x=>x.trim()).length<2} onClick={splitDraft}>Tách theo dòng nội dung</button>

@@ -80,9 +80,9 @@ test('Vietnamese screens, local DOCX/PDF, assignment to review and responsive ta
  await partner.close();
  await signIn(reviewer,'qa-deputy',true);
  await signIn(page,'qa-admin',true);
- await expect(page.getByRole('heading',{name:'Tổng quan',exact:true})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Dashboard',exact:true})).toBeVisible();
  await page.getByRole('button',{name:'Giao nhiệm vụ',exact:true}).click();
- const upload=page.getByLabel('Tệp DOCX hoặc PDF có lớp văn bản');
+ const upload=page.getByLabel('Tệp DOCX hoặc PDF (có hỗ trợ OCR)');
  await upload.setInputFiles({name:'nguon.docx',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',buffer:docx()});
  await expect(page.getByRole('button',{name:'Giao Văn phòng lập báo cáo.'})).toBeVisible();
  await upload.setInputFiles({name:'nguon.pdf',mimeType:'application/pdf',buffer:pdf()});
@@ -134,8 +134,8 @@ test('Vietnamese screens, local DOCX/PDF, assignment to review and responsive ta
 
  await page.getByRole('button',{name:'Báo cáo',exact:true}).click();
  await expect(page.getByRole('row').filter({hasText:'Cán bộ giả lập 03'})).toContainText('1');
- await page.getByRole('button',{name:'Tổng quan'}).click();
- await expect(page.getByRole('button',{name:taskName})).toBeVisible();
+ await page.getByRole('button',{name:'Dashboard'}).click();
+ await expect(page.getByRole('heading',{name:'Tiến độ và trạng thái'})).toBeVisible();
  await screenshot(page,'vpdu-tong-quan.png');
  await page.getByRole('button',{name:'Quản trị cán bộ'}).click();
  await expect(page.getByRole('heading',{name:'Quản trị cán bộ'})).toBeVisible();
@@ -185,4 +185,23 @@ test('auth-only entry never opens a workspace, even for an authorized admin',asy
  await expect(page.getByRole('navigation')).toHaveCount(0);
  await page.getByRole('button',{name:'Đăng xuất'}).click();
  await expect(page.getByRole('button',{name:'Đăng nhập bằng Google'})).toBeEnabled();
+});
+
+test('public administrative PDF opens real analysis UI and supports page-level OCR review',async({page})=>{
+ const sample=process.env.VPDU_PUBLIC_PDF;
+ test.skip(!sample,'Set VPDU_PUBLIC_PDF to a locally downloaded public PDF.');
+ test.setTimeout(160000);
+ await signIn(page,'qa-admin',true);
+ await page.getByRole('button',{name:'Giao nhiệm vụ',exact:true}).click();
+ await page.getByLabel('Tệp DOCX hoặc PDF (có hỗ trợ OCR)').setInputFiles(sample!);
+ await expect(page.getByRole('img',{name:'PDF gốc, trang 1'})).toBeVisible({timeout:100000});
+ await expect(page.getByText('Thông tin hành chính và nguồn nhận diện')).toBeVisible();
+ const before=await page.getByLabel('Số, ký hiệu',{exact:true}).inputValue();
+ await expect(page.getByLabel('Ngày ban hành',{exact:true})).toBeVisible();
+ await expect(page.getByLabel('Trích yếu',{exact:true})).toBeVisible();
+ await page.getByLabel('Vùng OCR lại').selectOption('left');
+ await page.getByRole('button',{name:'OCR lại vùng chọn'}).click();
+ await expect(page.getByText(/Đã OCR lại vùng chọn/)).toBeVisible({timeout:50000});
+ await expect(page.getByLabel('Số, ký hiệu',{exact:true})).toHaveValue(before);
+ await expect(page.getByRole('button',{name:'Duyệt và giao nhiệm vụ'})).toBeVisible();
 });

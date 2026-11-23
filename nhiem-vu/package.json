@@ -9,15 +9,19 @@
     "test:browser": "playwright test",
     "demo:seed": "node tests/seed-demo.mjs",
     "dev:demo": "vite --mode demo --host 127.0.0.1 --port 4180 --strictPort",
-    "build:auth-qa": "tsc --noEmit && vite build --mode auth-qa"
+    "build:auth-qa": "tsc --noEmit && vite build --mode auth-qa",
+    "test:documents": "playwright test -c playwright.documents.config.ts"
   },
   "type": "module",
   "dependencies": {
+    "@tesseract.js-data/vie": "1.0.0",
+    "fflate": "0.8.3",
     "firebase": "^13.4.0",
-    "mammoth": "^1.13.0",
     "pdfjs-dist": "^6.5.438",
     "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+    "react-dom": "^19.3.1",
+    "tesseract.js": "7.0.0",
+    "tesseract.js-core": "7.0.0"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^6.0.0",
@@ -25,7 +29,6 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",
-    "fflate": "^0.8.3",
     "firebase-tools": "^15.36.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.8",
