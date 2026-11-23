@@ -17,6 +17,10 @@ try{
   assert.deepEqual(weights,['400','700','700','700']);
   assert.equal(await page.locator('#timesFontSettings, input[accept=".ttf,.otf"]').count(),0);
  });
+ await check('schedule preview justifies activity text',async()=>{
+  assert.ok(await page.locator('.line>.lineBody').count());
+  assert.equal(await page.locator('.line>.lineBody').first().evaluate(el=>getComputedStyle(el).textAlign),'justify');
+ });
  const clickPdf=()=>page.getByRole('button',{name:'↓ Xuất PDF',exact:true}).click();
  await check('PDF uses bundled Liberation Serif with and without the original seal',async()=>{await page.getByRole('button',{name:'↺ Nạp dữ liệu giả lập'}).click();await page.evaluate(()=>{state.items[0].content='Tiếng Việt đầy đủ: Đảng ủy xã Lệ Ninh; kiểm tra dấu và ghi chú cuối lịch.'.normalize('NFD');changed()});await download(clickPdf,'schedule-liberation.pdf');assert.deepEqual(requests.filter(r=>r.url.includes('/assets/fonts/')).map(r=>r.url.split('/').at(-1)).sort(),['Bold','BoldItalic','Italic','Regular'].map(style=>`LiberationSerif-${style}.ttf`));await page.check('#includeStamp');await download(()=>page.getByRole('button',{name:'↓ Xuất PDF',exact:true}).click(),'schedule-liberation-stamped.pdf');assert.equal(await page.locator('#includeStamp').isChecked(),false);await download(()=>page.evaluate(async()=>{const d={start:'2026-11-16',items:Array.from({length:24},(_,i)=>({id:'long_'+i,day:0,end_day:0,session:'Sáng',people:['Đ/c BT'],content:`Hoạt động ${i+1}: `+'Nội dung tiếng Việt kiểm tra xuống dòng và ngắt trang. '.repeat(15)}))};LeNinh.save(await LeNinh.schedulePDF(d,{includeStamp:true}),'long.pdf')}),'schedule-liberation-long.pdf')});
  await check('all invitation templates keep the same recipient block and signature',async()=>{
