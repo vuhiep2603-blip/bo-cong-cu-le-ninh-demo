@@ -4,32 +4,28 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Quản lý, theo dõi nhiệm vụ · Văn phòng Đảng uỷ xã Lệ Ninh</title>
-  <link rel="stylesheet" href="./assets/task-manager.css?v=4.3.5-compact-top-20261128">
+  <link rel="stylesheet" href="./assets/task-manager.css?v=4.3.6-single-banner-20261128">
 </head>
 <body>
   <div class="tm-shell">
-    <nav class="tm-controlbar" aria-label="Điều hướng Bộ công cụ Văn phòng Đảng ủy">
-      <div class="tm-left">
-        <a
-          id="backHomeBtn"
-          class="tm-home-pill"
-          href="./index.html"
-          title="Về Bộ công cụ Văn phòng Đảng ủy"
-          aria-label="Về Bộ công cụ Văn phòng Đảng ủy"
-        >
-          <img class="tm-logo" src="./assets/logo.png" width="28" height="28" alt="Logo gốc Văn phòng Đảng uỷ xã Lệ Ninh">
-          <svg class="tm-home-ico" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M3 10.5 12 3l9 7.5" />
-            <path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5" />
-          </svg>
-          <span class="tm-home-label">Trang chủ</span>
-        </a>
-        <span class="tm-context-label">Bộ công cụ Văn phòng Đảng uỷ xã Lệ Ninh</span>
-      </div>
+    <nav class="tm-utilitybar" aria-label="Điều hướng nhanh Bộ công cụ">
+      <a
+        id="backHomeBtn"
+        class="tm-u-btn tm-u-home"
+        href="./index.html"
+        title="Về Bộ công cụ Văn phòng Đảng ủy"
+        aria-label="Về Bộ công cụ Văn phòng Đảng ủy"
+      >
+        <svg class="tm-u-ico" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 10.5 12 3l9 7.5" />
+          <path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5" />
+        </svg>
+        <span>Trang chủ</span>
+      </a>
 
       <div class="tm-actions">
         <a
-          class="tm-btn tm-btn-direct"
+          class="tm-u-btn tm-u-direct"
           id="openDirectBtn"
           href="https://script.google.com/macros/s/AKfycbzbqHR3SXHeGJLXijtgq73os-ETxnNYjRtsJ2x8ClXKkZ4fEDJFNJeNWxI9Fg2xdYG-/exec"
           target="_blank"
@@ -40,7 +36,7 @@
           <span class="tm-lbl-full">Mở trực tiếp (Tab mới)</span><span class="tm-lbl-short">Tab mới</span>
         </a>
         <button
-          class="tm-btn tm-btn-icon"
+          class="tm-u-btn tm-u-icon"
           id="toggleHelpBtn"
           type="button"
           aria-expanded="false"
