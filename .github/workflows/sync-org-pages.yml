@@ -1,0 +1,69 @@
+name: Sync Portal to vpdu-leninh.github.io
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-org-pages
+  cancel-in-progress: false
+
+jobs:
+  prepare-and-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source repository (main)
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build clean public Pages bundle & run Secret Guard
+        run: node scripts/prepare-org-pages.mjs dist-org-pages
+
+      - name: Verify excluded seal asset is absent
+        run: |
+          if [ -f dist-org-pages/assets/dau_van_phong_can_tron.png ]; then
+            echo "ERROR: Seal image found in public bundle!"
+            exit 1
+          fi
+          ls -la dist-org-pages
+
+      - name: Check ORG_PAGES_SYNC_TOKEN availability
+        id: check_token
+        env:
+          SYNC_TOKEN: ${{ secrets.ORG_PAGES_SYNC_TOKEN }}
+        run: |
+          if [ -n "$SYNC_TOKEN" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Chưa cấu hình Secret ORG_PAGES_SYNC_TOKEN (Fine-grained PAT chỉ cấp quyền Contents: Read & Write cho vpdu-leninh/vpdu-leninh.github.io). Bỏ qua bước đẩy tự động sang Org."
+          fi
+
+      - name: Sync clean bundle to vpdu-leninh/vpdu-leninh.github.io
+        if: steps.check_token.outputs.ready == 'true'
+        env:
+          SYNC_TOKEN: ${{ secrets.ORG_PAGES_SYNC_TOKEN }}
+        run: |
+          git clone --depth 1 "https://x-access-token:${SYNC_TOKEN}@github.com/vpdu-leninh/vpdu-leninh.github.io.git" target-org-pages
+          cd target-org-pages
+          git config user.name "vpdu-leninh-sync-bot"
+          git config user.email "actions@users.noreply.github.com"
+          find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+          cp -R ../dist-org-pages/. .
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to sync to vpdu-leninh.github.io."
+          else
+            git commit -m "Auto-sync portal from bo-cong-cu-le-ninh-demo (${GITHUB_SHA::7})"
+            git push origin main
+            echo "Synced successfully to https://vpdu-leninh.github.io/"
+          fi
