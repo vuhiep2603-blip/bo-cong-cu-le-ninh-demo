@@ -75,4 +75,4 @@ protected={'index.html': '142673ea8eeb60a4fd18c7ca29ff236391fe12e6a04a854247ca88
 for name,digest in protected.items():
  assert hashlib.sha256((root/name).read_bytes()).hexdigest()==digest,name
 (out/'export-verification.json').write_text(json.dumps(results,ensure_ascii=False,indent=2))
-print('PASS original index/help pages, other invitation template, logo, seal and calendar storage/normalization code unchanged.')
+print('PASS original help page, other invitation template, logo, seal and calendar storage/normalization code unchanged.')

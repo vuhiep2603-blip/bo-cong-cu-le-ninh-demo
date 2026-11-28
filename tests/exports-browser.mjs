@@ -55,6 +55,7 @@ try{
  });
  await check('task manager page embeds exact /exec URL, keeps home/direct controls and avoids double scrollbars',async()=>{
   await page.route(TASK_MANAGER_EXEC_URL,route=>route.fulfill({status:200,contentType:'text/html; charset=utf-8',body:'<!doctype html><html lang="vi"><body style="margin:0;font-family:sans-serif;padding:16px"><h2>Mock Web App</h2></body></html>'}));
+  await page.setViewportSize({width:1440,height:900});
   await page.goto(origin+prefix+'theo-doi-nhiem-vu.html');
   const frameSrc=await page.locator('#taskManagerFrame').getAttribute('src');
   assert.equal(frameSrc,TASK_MANAGER_EXEC_URL);
@@ -62,23 +63,27 @@ try{
   assert.equal(directHref,TASK_MANAGER_EXEC_URL);
   assert.equal(await page.locator('#openDirectBtn').getAttribute('target'),'_blank');
   assert.equal(await page.locator('a[href="./index.html"]').count(),1);
-  assert.ok(await page.locator('.tm-logo').evaluate(i=>i.complete&&i.naturalWidth===1254));
+  assert.equal(await page.locator('.tm-topbar').count(),0);
+  assert.equal(await page.locator('.tm-dock').count(),0);
+  assert.equal(await page.locator('.tm-context-label').count(),0);
   await page.locator('#toggleHelpBtn').click();
   assert.equal(await page.locator('#embedHelpBanner').isHidden(),false);
+  await page.waitForTimeout(80);
   await page.locator('#closeHelpBtn').click();
   assert.equal(await page.locator('#embedHelpBanner').isHidden(),true);
   for(const [width,height] of [[1440,900],[768,1024],[390,844],[320,740]]){
    await page.setViewportSize({width,height});
    const metrics=await page.evaluate(()=>{
-    const bar=document.querySelector('.tm-topbar');
-    const buttons=[...document.querySelectorAll('.tm-actions > *')].map(el=>{const r=el.getBoundingClientRect();return {text:el.textContent.trim(),left:r.left,right:r.right,width:r.width};});
-    return {sw:document.documentElement.scrollWidth,iw:innerWidth,sh:document.documentElement.scrollHeight,ih:innerHeight,barRight:bar.getBoundingClientRect().right,buttons};
+    const bar=document.querySelector('.tm-utilitybar');
+    const barRect=bar.getBoundingClientRect();
+    const controls=[document.getElementById('backHomeBtn'),...document.querySelectorAll('.tm-actions > *')].map(el=>{const r=el.getBoundingClientRect();return {text:el.textContent.trim(),left:r.left,right:r.right,width:r.width};});
+    return {sw:document.documentElement.scrollWidth,iw:innerWidth,sh:document.documentElement.scrollHeight,ih:innerHeight,barTop:barRect.top,barRight:barRect.right,barHeight:barRect.height,controls};
    });
    assert.ok(metrics.sw<=metrics.iw+1,`Task page horizontal overflow at ${width}`);
    assert.ok(metrics.sh<=metrics.ih+2,`Task page double scrollbar at ${width}x${height}`);
-   assert.ok(metrics.barRight<=metrics.iw+1,`Task topbar clipped at ${width}`);
-   for(const btn of metrics.buttons){
-    assert.ok(btn.left>=0&&btn.right<=metrics.iw+1&&btn.width>0,`Topbar control clipped at ${width}: ${JSON.stringify(btn)}`);
+   assert.ok(metrics.barTop<=2&&metrics.barRight<=metrics.iw+1&&metrics.barHeight<=40,`Utility bar layout failed at ${width}: ${JSON.stringify(metrics)}`);
+   for(const btn of metrics.controls){
+    assert.ok(btn.left>=0&&btn.right<=metrics.iw+1&&btn.width>0,`Utility bar control clipped at ${width}: ${JSON.stringify(btn)}`);
    }
   }
  });

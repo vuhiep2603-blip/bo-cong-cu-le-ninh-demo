@@ -1,14 +1,13 @@
 :root {
   font-family: Inter, 'Segoe UI', Arial, sans-serif;
   font-synthesis: none;
-  color-scheme: light;
-  --tm-deep: #41060e;
-  --tm-crimson: #700d19;
-  --tm-crimson-bright: #9e1b2e;
-  --tm-gold: #f0c272;
-  --tm-gold-soft: #ffe4b3;
-  --tm-cream: #fffaf4;
-  --tm-text: #fff8ee;
+  color-scheme: dark;
+  --tm-bg: #171b24;
+  --tm-bar-bg: #131720;
+  --tm-bar-border: #252f40;
+  --tm-gold: #fde047;
+  --tm-text: #e2e8f0;
+  --tm-muted: #94a3b8;
 }
 
 * {
@@ -23,14 +22,15 @@ body {
   height: 100%;
   height: 100dvh;
   overflow: hidden;
-  background: var(--tm-deep);
+  background: var(--tm-bg);
   color: var(--tm-text);
 }
 
+/* Bố cục 2 tầng tối giản: thanh điều hướng mảnh 34px (không lặp logo/banner bộ công cụ) + vùng iframe toàn khung */
 .tm-shell {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   width: 100%;
   max-width: 100%;
   height: 100%;
@@ -38,135 +38,116 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* Thanh điều khiển gọn 1 hàng tối ưu diện tích hiển thị cho iframe */
-.tm-topbar {
+.tm-utilitybar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
   width: 100%;
   max-width: 100%;
-  min-height: 56px;
-  padding: max(7px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 7px max(16px, env(safe-area-inset-left));
-  background: linear-gradient(100deg, #4d0711, #7e0b1b 62%, #9e1b2e);
-  border-bottom: 2px solid var(--tm-gold);
-  box-shadow: 0 4px 16px rgba(32, 0, 7, 0.45);
+  min-height: 34px;
+  padding: max(4px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 4px max(16px, env(safe-area-inset-left));
+  background: var(--tm-bar-bg);
+  border-bottom: 1px solid var(--tm-bar-border);
   position: relative;
   z-index: 20;
   overflow: hidden;
 }
 
-.tm-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-  flex: 1 1 auto;
-}
-
-.tm-logo {
-  width: 38px;
-  height: 38px;
-  flex: 0 0 38px;
-  object-fit: contain;
-  border: 0;
-  outline: 0;
-  box-shadow: none;
-  background: transparent;
-  padding: 0;
-  border-radius: 50%;
-  clip-path: circle(48.5% at 50% 50%);
-  display: block;
-}
-
-.tm-title-group {
-  min-width: 0;
-}
-
-.tm-overline {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.9px;
-  color: #ffd986;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.tm-title {
-  margin: 2px 0 0;
-  font-size: clamp(14px, 1.5vw, 17px);
-  font-weight: 800;
-  line-height: 1.2;
-  color: #fff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .tm-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
 }
 
-.tm-btn {
+.tm-u-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-height: 36px;
-  padding: 0 12px;
-  border-radius: 9px;
-  border: 1px solid rgba(255, 224, 172, 0.42);
-  background: rgba(255, 255, 255, 0.09);
-  color: #fff8ee;
+  gap: 5px;
+  min-height: 25px;
+  padding: 0 9px;
+  border-radius: 6px;
+  border: 1px solid #2b3648;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--tm-text);
   font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 750;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1;
   text-decoration: none;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.15s ease, transform 0.12s ease;
+  flex-shrink: 0;
+  transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
 }
 
-.tm-btn:hover {
-  background: rgba(255, 255, 255, 0.18);
-  transform: translateY(-1px);
+.tm-u-btn:hover {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(250, 204, 21, 0.55);
+  color: #ffffff;
 }
 
-.tm-btn:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: 2px;
+.tm-u-btn:focus-visible {
+  outline: 2px solid var(--tm-gold);
+  outline-offset: 1px;
 }
 
-.tm-btn-direct {
-  background: linear-gradient(125deg, #ffebbb, #f0c26a);
-  border-color: #ffe8b8;
-  color: #5b0f18;
-  box-shadow: 0 3px 10px rgba(34, 0, 7, 0.35);
+.tm-u-home {
+  background: linear-gradient(110deg, #7c141e 0%, #991b1b 100%);
+  border-color: rgba(250, 204, 21, 0.55);
+  color: #ffffff;
+  font-weight: 700;
 }
 
-.tm-btn-direct:hover {
-  background: linear-gradient(125deg, #fff3d2, #f5cd7e);
+.tm-u-home:hover {
+  background: linear-gradient(110deg, #991b1b 0%, #b91c1c 100%);
+  border-color: var(--tm-gold);
 }
 
-.tm-btn-icon {
-  width: 36px;
+.tm-u-ico {
+  width: 13px;
+  height: 13px;
+  stroke: var(--tm-gold);
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+.tm-u-direct {
+  color: #fde68a;
+  border-color: rgba(250, 204, 21, 0.35);
+  background: rgba(153, 27, 27, 0.18);
+}
+
+.tm-u-direct:hover {
+  background: rgba(185, 28, 28, 0.34);
+  border-color: var(--tm-gold);
+  color: #ffffff;
+}
+
+.tm-u-icon {
+  width: 25px;
   padding: 0;
-  font-size: 14px;
+  font-size: 12px;
+  color: var(--tm-muted);
 }
 
 .tm-lbl-short {
   display: none;
 }
 
-/* Dải thông báo hỗ trợ thu gọn (chỉ hiện khi bấm nút ? hoặc khi iframe chậm/bị chặn) */
+/* Hộp hướng dẫn / cảnh báo dự phòng phủ nổi gọn ngay dưới thanh 34px, không làm giật iframe */
 .tm-banner-wrap {
-  position: relative;
-  z-index: 15;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  pointer-events: none;
 }
 
 .tm-notice {
@@ -178,8 +159,10 @@ body {
   background: #fff5e4;
   color: #56202b;
   border-bottom: 1px solid #e0bf9f;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.38);
   font-size: 12px;
-  line-height: 1.5;
+  line-height: 1.48;
+  pointer-events: auto;
 }
 
 .tm-notice[hidden] {
@@ -210,7 +193,7 @@ body {
 .tm-notice-link {
   display: inline-flex;
   align-items: center;
-  min-height: 30px;
+  min-height: 28px;
   padding: 0 10px;
   border-radius: 7px;
   background: #841828;
@@ -233,14 +216,14 @@ body {
   cursor: pointer;
 }
 
-/* Vùng iframe toàn khung không tạo thanh cuộn kép */
+/* Vùng iframe chiếm tối đa chiều cao màn hình (>95%), không thanh cuộn kép */
 .tm-stage {
   position: relative;
   min-height: 0;
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #141923;
+  background: var(--tm-bg);
 }
 
 .tm-loading-bar {
@@ -248,8 +231,8 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, transparent, #f0c272, #ffe4b3, transparent);
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #facc15, #fef08a, transparent);
   background-size: 200% 100%;
   animation: tmShimmer 1.3s linear infinite;
   z-index: 5;
@@ -274,62 +257,35 @@ body {
   background: #ffffff;
 }
 
-/* Tối ưu máy tính bảng (iPad 768px - 1024px) */
+/* Máy tính bảng (768px - 900px) */
 @media (max-width: 900px) {
-  .tm-topbar {
-    gap: 8px;
+  .tm-utilitybar {
     padding-left: max(12px, env(safe-area-inset-left));
     padding-right: max(12px, env(safe-area-inset-right));
   }
-  .tm-overline {
-    font-size: 9.5px;
-  }
-  .tm-btn {
-    padding: 0 10px;
-    font-size: 12px;
-  }
 }
 
-/* Tối ưu iPhone (320px - 600px) */
+/* Điện thoại / iPhone (320px - 600px) */
 @media (max-width: 600px) {
-  .tm-topbar {
-    min-height: 50px;
-    padding: max(6px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) 6px max(8px, env(safe-area-inset-left));
+  .tm-utilitybar {
+    min-height: 36px;
+    padding: max(4px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 4px max(10px, env(safe-area-inset-left));
     gap: 6px;
   }
-  .tm-brand {
-    gap: 7px;
-  }
-  .tm-logo {
-    width: 30px;
-    height: 30px;
-    flex-basis: 30px;
-  }
-  .tm-overline {
-    display: none;
-  }
-  .tm-title {
-    font-size: 13px;
-  }
-  .tm-actions {
-    gap: 5px;
-  }
-  .tm-btn {
-    min-height: 32px;
+  .tm-u-btn {
+    min-height: 26px;
     padding: 0 8px;
-    font-size: 11.5px;
-    gap: 4px;
-    border-radius: 8px;
+    font-size: 11px;
+  }
+  .tm-u-icon {
+    width: 26px;
+    padding: 0;
   }
   .tm-lbl-full {
     display: none;
   }
   .tm-lbl-short {
     display: inline;
-  }
-  .tm-btn-icon {
-    width: 32px;
-    padding: 0;
   }
   .tm-notice {
     flex-direction: column;
