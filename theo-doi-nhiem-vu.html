@@ -4,57 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Quản lý, theo dõi nhiệm vụ · Văn phòng Đảng uỷ xã Lệ Ninh</title>
-  <link rel="stylesheet" href="./assets/task-manager.css?v=4.3.3-taskmgr-20261128">
+  <link rel="stylesheet" href="./assets/task-manager.css?v=4.3.4-unified-dock-20261128">
 </head>
 <body>
   <div class="tm-shell">
-    <header class="tm-topbar">
-      <div class="tm-brand">
-        <img class="tm-logo" src="./assets/logo.png" width="38" height="38" alt="Logo gốc Văn phòng Đảng uỷ xã Lệ Ninh">
-        <div class="tm-title-group">
-          <div class="tm-overline">VĂN PHÒNG ĐẢNG UỶ XÃ LỆ NINH</div>
-          <h1 class="tm-title">Quản lý, theo dõi nhiệm vụ</h1>
-        </div>
-      </div>
-      <nav class="tm-actions" aria-label="Điều hướng hệ thống nhiệm vụ">
-        <a class="tm-btn" href="./index.html" aria-label="Trở về trang chủ Bộ công cụ">
-          <span aria-hidden="true">⌂</span>
-          <span>Trang chủ</span>
-        </a>
-        <a class="tm-btn tm-btn-direct" id="openDirectBtn" href="https://script.google.com/macros/s/AKfycbzbqHR3SXHeGJLXijtgq73os-ETxnNYjRtsJ2x8ClXKkZ4fEDJFNJeNWxI9Fg2xdYG-/exec" target="_blank" rel="noopener noreferrer" aria-label="Mở trực tiếp Web App theo dõi nhiệm vụ trong tab mới">
-          <span aria-hidden="true">↗</span>
-          <span class="tm-lbl-full">Mở trực tiếp (Tab mới)</span><span class="tm-lbl-short">Tab mới</span>
-        </a>
-        <button class="tm-btn tm-btn-icon" id="toggleHelpBtn" type="button" aria-expanded="false" aria-controls="embedHelpBanner" title="Lưu ý đăng nhập, tải tệp và mở trực tiếp">?</button>
-      </nav>
-    </header>
-
-    <div class="tm-banner-wrap">
-      <aside class="tm-notice" id="embedFallbackBanner" role="status" hidden>
-        <div class="tm-notice-body">
-          <strong>Khung nhúng đang tải chậm hoặc bị trình duyệt hạn chế:</strong>
-          Một số trình duyệt (đặc biệt Safari trên iPhone/iPad hoặc khi chặn cookie bên thứ ba) có thể chặn tải Web App Google trong khung nhúng. Anh/chị vui lòng bấm <strong>Mở trực tiếp (Tab mới)</strong> để thao tác đầy đủ và ổn định nhất.
-        </div>
-        <div class="tm-notice-actions">
-          <a class="tm-notice-link" href="https://script.google.com/macros/s/AKfycbzbqHR3SXHeGJLXijtgq73os-ETxnNYjRtsJ2x8ClXKkZ4fEDJFNJeNWxI9Fg2xdYG-/exec" target="_blank" rel="noopener noreferrer">↗ Mở trực tiếp</a>
-          <button class="tm-notice-close" id="closeFallbackBtn" type="button" aria-label="Đóng thông báo">×</button>
-        </div>
-      </aside>
-
-      <aside class="tm-notice" id="embedHelpBanner" hidden>
-        <div class="tm-notice-body">
-          <strong>Hướng dẫn sử dụng &amp; các thao tác nên mở trực tiếp (Tab mới):</strong>
-          <ul class="tm-notice-list">
-            <li><strong>Đăng nhập bằng Tên đăng nhập &amp; Mật khẩu</strong> (cán bộ Văn phòng và 18 phòng/đơn vị) hoạt động thuận tiện ngay trong khung hiển thị này.</li>
-            <li><strong>Đăng nhập tài khoản Google (OAuth 2.0)</strong>, <strong>xem PDF Google Drive</strong>, <strong>tải tệp minh chứng</strong> hoặc <strong>xuất báo cáo Word/CSV</strong> có thể bị trình duyệt chặn pop-up/cookie bên thứ ba khi mở trong khung nhúng — khi gặp trường hợp này, bấm nút <strong>Mở trực tiếp (Tab mới)</strong> ở góc trên bên phải.</li>
-          </ul>
-        </div>
-        <div class="tm-notice-actions">
-          <button class="tm-notice-close" id="closeHelpBtn" type="button" aria-label="Đóng hướng dẫn">×</button>
-        </div>
-      </aside>
-    </div>
-
     <main class="tm-stage">
       <div class="tm-loading-bar" id="tmLoadingBar" aria-hidden="true"></div>
       <iframe
@@ -67,6 +20,50 @@
         allow="clipboard-write"
       ></iframe>
     </main>
+
+    <div class="tm-banner-wrap">
+      <aside class="tm-notice" id="embedFallbackBanner" role="status" hidden>
+        <div class="tm-notice-body">
+          <strong>Khung nhúng đang tải chậm hoặc bị trình duyệt hạn chế:</strong>
+          Một số trình duyệt (đặc biệt Safari trên iPhone/iPad hoặc khi chặn cookie bên thứ ba) có thể hạn chế Web App Google trong khung nhúng. Anh/chị vui lòng bấm <strong>Mở trực tiếp (Tab mới)</strong> để thao tác đầy đủ và ổn định nhất.
+        </div>
+        <div class="tm-notice-actions">
+          <a class="tm-notice-link" href="https://script.google.com/macros/s/AKfycbzbqHR3SXHeGJLXijtgq73os-ETxnNYjRtsJ2x8ClXKkZ4fEDJFNJeNWxI9Fg2xdYG-/exec" target="_blank" rel="noopener noreferrer">↗ Mở trực tiếp</a>
+          <button class="tm-notice-close" id="closeFallbackBtn" type="button" aria-label="Đóng thông báo">×</button>
+        </div>
+      </aside>
+
+      <aside class="tm-notice" id="embedHelpBanner" hidden>
+        <div class="tm-notice-body">
+          <strong>Hướng dẫn nhanh &amp; các thao tác nên mở trực tiếp (Tab mới):</strong>
+          <ul class="tm-notice-list">
+            <li><strong>Đăng nhập bằng Tên đăng nhập &amp; Mật khẩu</strong> (cán bộ Văn phòng và 18 phòng/đơn vị) hoạt động thuận tiện ngay trong khung hiển thị này.</li>
+            <li><strong>Đăng nhập Google (OAuth 2.0)</strong>, <strong>xem PDF Google Drive</strong>, <strong>tải tệp minh chứng</strong> hoặc <strong>xuất báo cáo Word/CSV</strong> có thể bị trình duyệt hạn chế cookie/pop-up bên thứ ba — khi cần hãy bấm <strong>Mở trực tiếp (Tab mới)</strong> trên thanh dưới.</li>
+          </ul>
+        </div>
+        <div class="tm-notice-actions">
+          <button class="tm-notice-close" id="closeHelpBtn" type="button" aria-label="Đóng hướng dẫn">×</button>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="tm-dock" role="navigation" aria-label="Thanh điều hướng Bộ công cụ Văn phòng Đảng ủy">
+      <div class="tm-dock-brand">
+        <img class="tm-logo" src="./assets/logo.png" width="24" height="24" alt="Logo gốc Văn phòng Đảng uỷ xã Lệ Ninh">
+        <span class="tm-dock-title">Bộ công cụ Văn phòng Đảng uỷ xã Lệ Ninh</span>
+      </div>
+      <div class="tm-actions">
+        <a class="tm-btn" href="./index.html" aria-label="Trở về trang chủ Bộ công cụ">
+          <span aria-hidden="true">⌂</span>
+          <span>Trang chủ</span>
+        </a>
+        <a class="tm-btn tm-btn-direct" id="openDirectBtn" href="https://script.google.com/macros/s/AKfycbzbqHR3SXHeGJLXijtgq73os-ETxnNYjRtsJ2x8ClXKkZ4fEDJFNJeNWxI9Fg2xdYG-/exec" target="_blank" rel="noopener noreferrer" aria-label="Mở trực tiếp Web App theo dõi nhiệm vụ trong tab mới">
+          <span aria-hidden="true">↗</span>
+          <span class="tm-lbl-full">Mở trực tiếp (Tab mới)</span><span class="tm-lbl-short">Tab mới</span>
+        </a>
+        <button class="tm-btn tm-btn-icon" id="toggleHelpBtn" type="button" aria-expanded="false" aria-controls="embedHelpBanner" title="Lưu ý đăng nhập, tải tệp và mở trực tiếp">?</button>
+      </div>
+    </footer>
   </div>
 
   <script>

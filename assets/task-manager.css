@@ -1,14 +1,15 @@
 :root {
   font-family: Inter, 'Segoe UI', Arial, sans-serif;
   font-synthesis: none;
-  color-scheme: light;
-  --tm-deep: #41060e;
-  --tm-crimson: #700d19;
-  --tm-crimson-bright: #9e1b2e;
+  color-scheme: dark;
+  --tm-bg: #141923;
+  --tm-dock-bg: #171d29;
+  --tm-dock-border: rgba(240, 194, 114, 0.32);
+  --tm-crimson: #8b1520;
+  --tm-crimson-hover: #a81c2b;
   --tm-gold: #f0c272;
-  --tm-gold-soft: #ffe4b3;
-  --tm-cream: #fffaf4;
-  --tm-text: #fff8ee;
+  --tm-text: #f3f6fb;
+  --tm-muted: #b6c2d6;
 }
 
 * {
@@ -23,224 +24,31 @@ body {
   height: 100%;
   height: 100dvh;
   overflow: hidden;
-  background: var(--tm-deep);
+  background: var(--tm-bg);
   color: var(--tm-text);
 }
 
+/* Khung toàn màn hình: iframe bắt đầu ngay từ mép trên (không có dải banner đỏ chồng lớp),
+   thanh điều hướng gọn gàng tích hợp ở cạnh dưới tối ưu tối đa diện tích hiển thị */
 .tm-shell {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto auto;
   width: 100%;
   max-width: 100%;
   height: 100%;
   height: 100dvh;
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-top: env(safe-area-inset-top);
 }
 
-/* Thanh điều khiển gọn 1 hàng tối ưu diện tích hiển thị cho iframe */
-.tm-topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-  max-width: 100%;
-  min-height: 56px;
-  padding: max(7px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 7px max(16px, env(safe-area-inset-left));
-  background: linear-gradient(100deg, #4d0711, #7e0b1b 62%, #9e1b2e);
-  border-bottom: 2px solid var(--tm-gold);
-  box-shadow: 0 4px 16px rgba(32, 0, 7, 0.45);
-  position: relative;
-  z-index: 20;
-  overflow: hidden;
-}
-
-.tm-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-  flex: 1 1 auto;
-}
-
-.tm-logo {
-  width: 38px;
-  height: 38px;
-  flex: 0 0 38px;
-  object-fit: contain;
-  border: 0;
-  outline: 0;
-  box-shadow: none;
-  background: transparent;
-  padding: 0;
-  border-radius: 50%;
-  clip-path: circle(48.5% at 50% 50%);
-  display: block;
-}
-
-.tm-title-group {
-  min-width: 0;
-}
-
-.tm-overline {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.9px;
-  color: #ffd986;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.tm-title {
-  margin: 2px 0 0;
-  font-size: clamp(14px, 1.5vw, 17px);
-  font-weight: 800;
-  line-height: 1.2;
-  color: #fff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.tm-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.tm-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 36px;
-  padding: 0 12px;
-  border-radius: 9px;
-  border: 1px solid rgba(255, 224, 172, 0.42);
-  background: rgba(255, 255, 255, 0.09);
-  color: #fff8ee;
-  font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 750;
-  text-decoration: none;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.15s ease, transform 0.12s ease;
-}
-
-.tm-btn:hover {
-  background: rgba(255, 255, 255, 0.18);
-  transform: translateY(-1px);
-}
-
-.tm-btn:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: 2px;
-}
-
-.tm-btn-direct {
-  background: linear-gradient(125deg, #ffebbb, #f0c26a);
-  border-color: #ffe8b8;
-  color: #5b0f18;
-  box-shadow: 0 3px 10px rgba(34, 0, 7, 0.35);
-}
-
-.tm-btn-direct:hover {
-  background: linear-gradient(125deg, #fff3d2, #f5cd7e);
-}
-
-.tm-btn-icon {
-  width: 36px;
-  padding: 0;
-  font-size: 14px;
-}
-
-.tm-lbl-short {
-  display: none;
-}
-
-/* Dải thông báo hỗ trợ thu gọn (chỉ hiện khi bấm nút ? hoặc khi iframe chậm/bị chặn) */
-.tm-banner-wrap {
-  position: relative;
-  z-index: 15;
-}
-
-.tm-notice {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 9px max(16px, env(safe-area-inset-right)) 9px max(16px, env(safe-area-inset-left));
-  background: #fff5e4;
-  color: #56202b;
-  border-bottom: 1px solid #e0bf9f;
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.tm-notice[hidden] {
-  display: none;
-}
-
-.tm-notice strong {
-  color: #7c1423;
-}
-
-.tm-notice-body {
-  min-width: 0;
-  flex: 1;
-}
-
-.tm-notice-list {
-  margin: 4px 0 0;
-  padding-left: 18px;
-}
-
-.tm-notice-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.tm-notice-link {
-  display: inline-flex;
-  align-items: center;
-  min-height: 30px;
-  padding: 0 10px;
-  border-radius: 7px;
-  background: #841828;
-  color: #fff;
-  font-size: 11.5px;
-  font-weight: 700;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.tm-notice-close {
-  border: 1px solid #d5b4a7;
-  background: #fff;
-  color: #7b2231;
-  width: 28px;
-  height: 28px;
-  border-radius: 7px;
-  font-size: 16px;
-  line-height: 1;
-  cursor: pointer;
-}
-
-/* Vùng iframe toàn khung không tạo thanh cuộn kép */
+/* Vùng iframe chính chiếm toàn bộ không gian trên cùng, không tạo thanh cuộn kép */
 .tm-stage {
   position: relative;
   min-height: 0;
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #141923;
+  background: var(--tm-bg);
 }
 
 .tm-loading-bar {
@@ -274,52 +82,220 @@ body {
   background: #ffffff;
 }
 
-/* Tối ưu máy tính bảng (iPad 768px - 1024px) */
+/* Dải thông báo hỗ trợ thu gọn (mở ngay phía trên thanh dưới khi bấm ? hoặc khi iframe bị chặn) */
+.tm-banner-wrap {
+  position: relative;
+  z-index: 15;
+}
+
+.tm-notice {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px max(14px, env(safe-area-inset-right)) 9px max(14px, env(safe-area-inset-left));
+  background: #fff5e4;
+  color: #56202b;
+  border-top: 1px solid #e0bf9f;
+  font-size: 12px;
+  line-height: 1.48;
+}
+
+.tm-notice[hidden] {
+  display: none;
+}
+
+.tm-notice strong {
+  color: #7c1423;
+}
+
+.tm-notice-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.tm-notice-list {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
+.tm-notice-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.tm-notice-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 7px;
+  background: #841828;
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.tm-notice-close {
+  border: 1px solid #d5b4a7;
+  background: #fff;
+  color: #7b2231;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* Thanh công cụ điều hướng tích hợp gọn ở cạnh dưới — đồng bộ tông tối mượt với hệ thống */
+.tm-dock {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  min-height: 40px;
+  padding: 5px max(14px, env(safe-area-inset-right)) max(5px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+  background: linear-gradient(90deg, #161c28 0%, #1d2534 55%, #2a1720 100%);
+  border-top: 1px solid var(--tm-dock-border);
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.35);
+  position: relative;
+  z-index: 20;
+  overflow: hidden;
+}
+
+.tm-dock-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.tm-logo {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  object-fit: contain;
+  border: 0;
+  outline: 0;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+  border-radius: 50%;
+  clip-path: circle(48.5% at 50% 50%);
+  display: block;
+}
+
+.tm-dock-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tm-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tm-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+.tm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 29px;
+  padding: 0 10px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 224, 172, 0.28);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f8fafc;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+}
+
+.tm-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(240, 194, 114, 0.55);
+  transform: translateY(-1px);
+}
+
+.tm-btn:focus-visible {
+  outline: 2px solid var(--tm-gold);
+  outline-offset: 2px;
+}
+
+.tm-btn-direct {
+  background: linear-gradient(125deg, #8b1520, #b31e2c);
+  border-color: rgba(240, 194, 114, 0.65);
+  color: #fff8ee;
+  box-shadow: 0 2px 8px rgba(139, 21, 32, 0.35);
+}
+
+.tm-btn-direct:hover {
+  background: linear-gradient(125deg, #a31b29, #c82534);
+  border-color: #ffe29e;
+}
+
+.tm-btn-icon {
+  width: 29px;
+  padding: 0;
+  font-size: 13px;
+}
+
+.tm-lbl-short {
+  display: none;
+}
+
+/* Máy tính bảng (768px - 900px) */
 @media (max-width: 900px) {
-  .tm-topbar {
+  .tm-dock {
+    padding-left: max(10px, env(safe-area-inset-left));
+    padding-right: max(10px, env(safe-area-inset-right));
     gap: 8px;
-    padding-left: max(12px, env(safe-area-inset-left));
-    padding-right: max(12px, env(safe-area-inset-right));
   }
-  .tm-overline {
-    font-size: 9.5px;
-  }
-  .tm-btn {
-    padding: 0 10px;
-    font-size: 12px;
+  .tm-dock-title {
+    font-size: 11.5px;
   }
 }
 
-/* Tối ưu iPhone (320px - 600px) */
+/* Điện thoại / iPhone (320px - 600px) */
 @media (max-width: 600px) {
-  .tm-topbar {
-    min-height: 50px;
-    padding: max(6px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) 6px max(8px, env(safe-area-inset-left));
+  .tm-dock {
+    min-height: 40px;
+    padding: 5px max(8px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
     gap: 6px;
   }
-  .tm-brand {
-    gap: 7px;
+  .tm-dock-brand {
+    flex: 0 1 auto;
+    gap: 6px;
   }
-  .tm-logo {
-    width: 30px;
-    height: 30px;
-    flex-basis: 30px;
-  }
-  .tm-overline {
-    display: none;
-  }
-  .tm-title {
-    font-size: 13px;
+  .tm-dock-title {
+    font-size: 11px;
   }
   .tm-actions {
     gap: 5px;
   }
   .tm-btn {
-    min-height: 32px;
+    min-height: 30px;
     padding: 0 8px;
     font-size: 11.5px;
     gap: 4px;
-    border-radius: 8px;
   }
   .tm-lbl-full {
     display: none;
@@ -328,7 +304,7 @@ body {
     display: inline;
   }
   .tm-btn-icon {
-    width: 32px;
+    width: 30px;
     padding: 0;
   }
   .tm-notice {
@@ -339,5 +315,11 @@ body {
   .tm-notice-actions {
     width: 100%;
     justify-content: flex-end;
+  }
+}
+
+@media (max-width: 400px) {
+  .tm-dock-title {
+    display: none;
   }
 }

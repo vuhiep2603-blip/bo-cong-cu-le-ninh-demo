@@ -67,18 +67,22 @@ try{
   assert.equal(await page.locator('#embedHelpBanner').isHidden(),false);
   await page.locator('#closeHelpBtn').click();
   assert.equal(await page.locator('#embedHelpBanner').isHidden(),true);
+  assert.equal(await page.locator('.tm-topbar').count(),0);
   for(const [width,height] of [[1440,900],[768,1024],[390,844],[320,740]]){
    await page.setViewportSize({width,height});
    const metrics=await page.evaluate(()=>{
-    const bar=document.querySelector('.tm-topbar');
+    const frameRect=document.getElementById('taskManagerFrame').getBoundingClientRect();
+    const dock=document.querySelector('.tm-dock');
+    const dockRect=dock.getBoundingClientRect();
     const buttons=[...document.querySelectorAll('.tm-actions > *')].map(el=>{const r=el.getBoundingClientRect();return {text:el.textContent.trim(),left:r.left,right:r.right,width:r.width};});
-    return {sw:document.documentElement.scrollWidth,iw:innerWidth,sh:document.documentElement.scrollHeight,ih:innerHeight,barRight:bar.getBoundingClientRect().right,buttons};
+    return {sw:document.documentElement.scrollWidth,iw:innerWidth,sh:document.documentElement.scrollHeight,ih:innerHeight,frameTop:frameRect.top,dockRight:dockRect.right,dockHeight:dockRect.height,buttons};
    });
    assert.ok(metrics.sw<=metrics.iw+1,`Task page horizontal overflow at ${width}`);
    assert.ok(metrics.sh<=metrics.ih+2,`Task page double scrollbar at ${width}x${height}`);
-   assert.ok(metrics.barRight<=metrics.iw+1,`Task topbar clipped at ${width}`);
+   assert.ok(metrics.frameTop<=2,`Iframe should start at top without stacked red banner at ${width}, got top=${metrics.frameTop}`);
+   assert.ok(metrics.dockRight<=metrics.iw+1&&metrics.dockHeight<=52,`Bottom dock clipped or oversized at ${width}`);
    for(const btn of metrics.buttons){
-    assert.ok(btn.left>=0&&btn.right<=metrics.iw+1&&btn.width>0,`Topbar control clipped at ${width}: ${JSON.stringify(btn)}`);
+    assert.ok(btn.left>=0&&btn.right<=metrics.iw+1&&btn.width>0,`Dock control clipped at ${width}: ${JSON.stringify(btn)}`);
    }
   }
  });
