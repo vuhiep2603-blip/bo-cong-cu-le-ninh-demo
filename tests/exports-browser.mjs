@@ -41,5 +41,39 @@ try{
   assert.match(await page.locator('#previewRows').innerText(),/Hoạt động nhập từ biểu mẫu/);
   await page.locator('[data-id="demo_am"][data-field="content"]').first().fill('Lịch đã chỉnh sửa tiếng Việt.');await page.locator('[data-id="demo_am"][data-field="content"]').first().blur();await page.evaluate(()=>saveWeek());const before=await page.evaluate(()=>JSON.stringify(state));await page.reload();await page.waitForFunction(()=>state.items.length>0);assert.equal(await page.evaluate(()=>JSON.stringify(state)),before);await download(()=>page.getByRole('button',{name:'↓ Xuất Word',exact:true}).click(),'schedule-word.docx');await download(clickPdf,'schedule-liberation-reloaded.pdf');await download(()=>page.getByRole('button',{name:'↓ Sao lưu dữ liệu',exact:true}).click(),'schedule-backup.json');await page.evaluate(()=>clearWeek());await page.locator('#restoreFile').setInputFiles(resolve(out,'schedule-backup.json'));await page.waitForFunction(()=>state.items.length>0);assert.equal(await page.evaluate(()=>JSON.stringify(state)),before);const backup=await readFile(resolve(out,'schedule-backup.json'),'utf8');assert.ok(!backup.includes('faces'));assert.ok(!backup.includes('postscriptName'));});
  await check('schedule and original logo work at desktop/mobile widths',async()=>{for(const width of [1440,390,320]){await page.setViewportSize({width,height:1000});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));assert.ok(await page.locator('.suiteLogo').evaluate(i=>i.complete&&i.naturalWidth===1254));if(width===390)await page.screenshot({path:resolve(out,'mobile-schedule.png'),fullPage:true})}});
- assert.deepEqual(errors,[]);assert.ok(requests.every(r=>r.method==='GET'&&r.url.startsWith(origin+'/')),'No upload or external font request');await writeFile(resolve(out,'exports-browser-results.json'),JSON.stringify({checks,errors,requests},null,2));console.log(checks.length,'browser checks passed');
+ assert.deepEqual(errors,[]);assert.ok(requests.every(r=>r.method==='GET'&&r.url.startsWith(origin+'/')),'No upload or external font request');
+ await check('task portal layout and direct fallback work at desktop, tablet and phone widths',async()=>{
+  const portal=await browser.newContext();
+  try {
+   const tab=await portal.newPage();
+   for(const width of [1440,768,390,320]) {
+    await tab.setViewportSize({width,height:844});
+    await tab.goto(origin+prefix);
+    assert.deepEqual(await tab.locator('.cards a').evaluateAll(cards=>cards.map(card=>card.getAttribute('href'))),
+     ['./giay-moi.html','./lich-cong-tac.html','./theo-doi-nhiem-vu.html']);
+    assert.ok(await tab.locator('header img').evaluate(img=>img.complete&&img.naturalWidth===1254));
+    assert.equal(await tab.evaluate(()=>document.documentElement.scrollWidth),width);
+    await portal.route('https://script.google.com/**',route=>route.abort('blockedbyclient'));
+    await tab.getByRole('link',{name:/Quản lý, theo dõi nhiệm vụ/}).click();
+    const frame=tab.locator('iframe'),direct=tab.getByRole('link',{name:'Mở Web App trực tiếp'});
+    assert.match(await frame.getAttribute('src'),/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/);
+    assert.equal(await frame.getAttribute('src'),await direct.getAttribute('href'));
+    assert.equal(await tab.evaluate(()=>document.documentElement.scrollHeight),844);
+    assert.equal(await tab.evaluate(()=>document.documentElement.scrollWidth),width);
+    await portal.unrouteAll();
+    await portal.route('https://script.google.com/**',route=>route.fulfill({contentType:'text/plain',body:'Web App mock'}));
+    const opened=tab.waitForEvent('popup');
+    await direct.click();
+    const popup=await opened;
+    await popup.waitForLoadState();
+    assert.equal(popup.url(),await direct.getAttribute('href'));
+    assert.equal(await popup.evaluate(()=>window.opener),null);
+    await popup.close();
+    await tab.getByRole('link',{name:'Về trang chủ Bộ công cụ'}).click();
+    assert.equal(tab.url(),origin+prefix);
+    await portal.unrouteAll();
+   }
+  } finally {await portal.close();}
+ });
+ await writeFile(resolve(out,'exports-browser-results.json'),JSON.stringify({checks,errors,requests},null,2));console.log(checks.length,'browser checks passed');
 }finally{await browser.close();server.close()}
