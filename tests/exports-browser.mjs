@@ -64,8 +64,7 @@ try{
   assert.equal(await page.locator('#openDirectBtn').getAttribute('target'),'_blank');
   assert.equal(await page.locator('a[href="./index.html"]').count(),1);
   assert.equal(await page.locator('.tm-topbar').count(),0);
-  assert.equal(await page.locator('.tm-dock').count(),0);
-  assert.equal(await page.locator('.tm-context-label').count(),0);
+  assert.equal(await page.locator('#footerCreditText').innerText(),'Một sản phẩm được phát triển bởi Văn phòng Đảng uỷ xã Lệ Ninh, tỉnh Quảng Trị');
   await page.locator('#toggleHelpBtn').click();
   assert.equal(await page.locator('#embedHelpBanner').isHidden(),false);
   await page.waitForTimeout(80);
@@ -74,16 +73,24 @@ try{
   for(const [width,height] of [[1440,900],[768,1024],[390,844],[320,740]]){
    await page.setViewportSize({width,height});
    const metrics=await page.evaluate(()=>{
-    const bar=document.querySelector('.tm-utilitybar');
+    const frameRect=document.getElementById('taskManagerFrame').getBoundingClientRect();
+    const bar=document.querySelector('.tm-footerbar');
     const barRect=bar.getBoundingClientRect();
+    const creditRect=document.getElementById('footerCreditText').getBoundingClientRect();
+    const homeRect=document.getElementById('backHomeBtn').getBoundingClientRect();
+    const directRect=document.getElementById('openDirectBtn').getBoundingClientRect();
     const controls=[document.getElementById('backHomeBtn'),...document.querySelectorAll('.tm-actions > *')].map(el=>{const r=el.getBoundingClientRect();return {text:el.textContent.trim(),left:r.left,right:r.right,width:r.width};});
-    return {sw:document.documentElement.scrollWidth,iw:innerWidth,sh:document.documentElement.scrollHeight,ih:innerHeight,barTop:barRect.top,barRight:barRect.right,barHeight:barRect.height,controls};
+    return {sw:document.documentElement.scrollWidth,iw:innerWidth,sh:document.documentElement.scrollHeight,ih:innerHeight,frameTop:frameRect.top,barRight:barRect.right,barBottom:barRect.bottom,barHeight:barRect.height,homeRight:homeRect.right,creditLeft:creditRect.left,creditRight:creditRect.right,directLeft:directRect.left,controls};
    });
    assert.ok(metrics.sw<=metrics.iw+1,`Task page horizontal overflow at ${width}`);
    assert.ok(metrics.sh<=metrics.ih+2,`Task page double scrollbar at ${width}x${height}`);
-   assert.ok(metrics.barTop<=2&&metrics.barRight<=metrics.iw+1&&metrics.barHeight<=40,`Utility bar layout failed at ${width}: ${JSON.stringify(metrics)}`);
+   assert.ok(metrics.frameTop<=2,`Iframe should start at top without extra top banner at ${width}`);
+   assert.ok(metrics.barRight<=metrics.iw+1&&metrics.barBottom<=metrics.ih+2,`Footer bar clipped at ${width}: ${JSON.stringify(metrics)}`);
+   if(width>=768){
+    assert.ok(metrics.homeRight<=metrics.creditLeft+1&&metrics.creditRight<=metrics.directLeft+1,`Credit text not strictly between Home and Direct buttons at ${width}: ${JSON.stringify(metrics)}`);
+   }
    for(const btn of metrics.controls){
-    assert.ok(btn.left>=0&&btn.right<=metrics.iw+1&&btn.width>0,`Utility bar control clipped at ${width}: ${JSON.stringify(btn)}`);
+    assert.ok(btn.left>=0&&btn.right<=metrics.iw+1&&btn.width>0,`Footer bar control clipped at ${width}: ${JSON.stringify(btn)}`);
    }
   }
  });
